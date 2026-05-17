@@ -1,0 +1,215 @@
+--- Page 1 ---
+Progress Report 2
+Arsitektur AIGC, Data Strategy, & System Concept Diagram
+JobIQ: Intelligent Job Discovery Agent
+Kelompok: 7A
+1. Alexander Christhian (2306267025)
+2. Rowen Rodotua Harahap
+3. Bryan Herdianto (2306210885)
+4. Muhammad Riyan Satrio Wibowo (2306229323)
+Mata Kuliah: Interaksi Komputer dan Manusia
+Teknik Komputer — Universitas Indonesia, Semester Genap 2025/2026
+
+
+--- Page 2 ---
+Interaksi Komputer dan Manusia — Teknik Komputer UI Progress Report 2
+Contents
+1 Arsitektur AIGC 2
+1.1 Komponen Utama . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.2 Aliran Data . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.3 Interaksi Manusia dengan Sistem . . . . . . . . . . . . . . . . . . . . . . . . . 2
+2 Data Strategy 3
+2.1 Sumber Data . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+2.2 Format & Preprocessing . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+2.3 Mekanisme Pelabelan . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+3 System Concept Diagram 5
+3.1 Hubungan Pengguna dan Komponen AI . . . . . . . . . . . . . . . . . . . . . 5
+3.2 Aliran Keputusan . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+Contribution Log 6
+1
+
+
+--- Page 3 ---
+Interaksi Komputer dan Manusia — Teknik Komputer UI Progress Report 2
+1 Arsitektur AIGC
+Bagian ini menjelaskan arsitektur sistem JobIQ yang berbasis AI-Generated Content (AIGC).
+Sistem ini memanfaatkan Large Language Model (LLM) untuk menghasilkan konten berupa
+ringkasan lowongan, rekomendasi yang dipersonalisasi, dan penjelasan kecocokan profil.
+1.1 Komponen Utama
+Arsitektur JobIQ terdiri dari beberapa komponen utama:
+1. Data Collection Layer: Komponen headless browser (Selenium/Puppeteer) yang bertu-
+gas melakukan web scraping terhadap platform rekrutmen seperti LinkedIn, Glints, dan
+Kalibrr. Proses ini berjalan secara terjadwal setiap 6 jam.
+2. Data Processing Layer: Komponen yang memproses data mentah hasil scraping. Di
+sini, teks deskripsi lowongan dibersihkan, dinormalisasi, dan diekstrak informasi terstruk-
+turnya (posisi, gaji, lokasi, tech stack).
+3. AI/LLM Engine: Inti dari sistem AIGC. LLM bertugas untuk:
+• Memahami dan merangkum deskripsi lowongan yang panjang
+• Mencocokkan profil pengguna dengan lowongan
+• Menghasilkan penjelasan mengapa suatu lowongan direkomendasikan
+• Mendeteksi potensi lowongan palsu berdasarkan pola teks
+4. User Interface Layer: Dashboard berbasis web yang menampilkan hasil rekomendasi
+kepada pengguna. Antarmuka ini juga menerimafeedback dari pengguna untuk meningkatkan
+akurasi sistem.
+5. Feedback Loop: Komponen yang mengumpulkan respons pengguna (Thumbs Up/Down)
+dan menggunakannya untuk menyesuaikan parameter pemeringkatan pada siklus berikut-
+nya.
+1.2 Aliran Data
+Aliran data dalam sistem JobIQ mengikuti pola berikut:
+Platform Rekrutmen → Scraper → Data Processing → LLM Analysis → Dashboard →
+User Feedback → Model Refinement
+1.3 Interaksi Manusia dengan Sistem
+Pengguna berinteraksi dengan sistem pada beberapa titik:
+• Input Profil: Pengguna mengunggah CV dan mengisi preferensi pekerjaan
+• Review Rekomendasi: Pengguna meninjau daftar lowongan yang direkomendasikan AI
+• Feedback: Pengguna memberikan penilaian terhadap relevansi rekomendasi
+• Keputusan Akhir: Pengguna memutuskan lowongan mana yang akan dilamar (bukan
+AI)
+2
+
+
+--- Page 4 ---
+Interaksi Komputer dan Manusia — Teknik Komputer UI Progress Report 2
+Platform
+Rekrutmen
+Scraper
+(Data Col-
+lection)
+Data Pro-
+cessing
+(Clean &
+Normalisasi)
+LLM Analysis
+(AI Engine)
+Dashboard
+(User Interface)
+User Feedback
+(Thumbs
+Up/Down)
+Model Refinement
+Figure 1: Aliran Data Arsitektur AIGC JobIQ
+2 Data Strategy
+Bagian ini menjelaskan strategi data untuk sistem JobIQ, mencakup sumber data, format, mekanisme
+pelabelan, dan pertimbangan kualitas data.
+2.1 Sumber Data
+JobIQ menggunakan kombinasi data dari berbagai sumber:
+1. Data Publik dari Platform Rekrutmen:
+• LinkedIn Jobs — lowongan yang tersedia secara publik
+• Glints — platform rekrutmen populer di Asia Tenggara
+• Kalibrr — platform rekrutmen dengan fokus Indonesia dan Filipina
+• JobStreet dan Indeed — sebagai sumber tambahan
+Data ini dikumpulkan melalui web scraping dengan mematuhi rate limiting agar tidak
+membebani server sumber.
+2. Data Pengguna (Self-Collected):
+• CV yang diunggah pengguna (format PDF/DOCX)
+• Preferensi yang diisi manual (gaji, lokasi, model kerja)
+• Riwayat feedback terhadap rekomendasi
+Data ini disimpan secara lokal dan terenkripsi untuk menjaga privasi.
+3. Data Kontekstual:
+• Informasi perusahaan dari sumber publik (Glassdoor, company website)
+• Data tren industri untuk konteks rekomendasi
+3
+
+
+--- Page 5 ---
+Interaksi Komputer dan Manusia — Teknik Komputer UI Progress Report 2
+2.2 Format & Preprocessing
+Format Data Mentah:
+• Lowongan: Teks tidak terstruktur dalam format HTML/JSON dari hasil scraping. Infor-
+masi seperti gaji, lokasi, dan kualifikasi sering kali tidak konsisten antar platform.
+• CV Pengguna: Dokumen PDF atau DOCX dengan format yang bervariasi (kronologis,
+fungsional, kombinasi).
+Preprocessing yang Diperlukan:
+1. Text Cleaning: Menghapus tag HTML, karakter khusus, dan whitespace berlebih
+2. Named Entity Recognition (NER):Mengekstrak entitas seperti nama perusahaan, lokasi,
+tech stack, dan rentang gaji
+3. Normalisasi: Menyeragamkan format gaji (misal: “10-15jt” → “10000000-15000000”),
+lokasi (“Jkt” → “Jakarta”), dan model kerja
+4. Deduplication: Mengidentifikasi dan menggabungkan lowongan yang sama dari plat-
+form berbeda
+5. CV Parsing: Mengekstrak informasi terstruktur dari CV menggunakan kombinasi OCR
+(untuk PDF scan) dan NLP
+2.3 Mekanisme Pelabelan
+Pelabelan data dalam JobIQ menggunakan pendekatan Human-in-the-Loop (HitL):
+1. Pelabelan Otomatis oleh AI:
+• LLM secara otomatis mengekstrak dan melabeli kategori lowongan (bidang peker-
+jaan, level senioritas, tech stack)
+• Sistem memberikan skor kecocokan awal berdasarkan pencocokan profil
+• Deteksi otomatis terhadap indikator lowongan palsu
+2. Validasi oleh Pengguna (HitL):
+• Pengguna memberikan feedback (Thumbs Up/Down) yang menjadi label implisit
+untuk relevansi
+• Pengguna dapat menambahkan catatan spesifik (misal: “Saya tidak tertarik perusa-
+haan outsourcing”)
+• Label ini digunakan untuk melatih ulang model personalisasi
+3. Quality Control:
+• Sampling manual untuk memverifikasi akurasi pelabelan otomatis
+• Threshold confidence untuk menentukan kapan hasil AI perlu direview manusia
+4
+
+
+--- Page 6 ---
+Interaksi Komputer dan Manusia — Teknik Komputer UI Progress Report 2
+3 System Concept Diagram
+Diagram konsep sistem JobIQ menunjukkan hubungan antara pengguna, komponen AI, dan
+aliran keputusan dalam proses pencarian kerja.
+3.1 Hubungan Pengguna dan Komponen AI
+Aktor Peran Interaksi
+Pengguna Decision Maker Input profil, review, feedback, keputusan melamar
+AI Scraper Data Collector Mengumpulkan lowongan dari berbagai platform
+AI Analyzer Content Generator Merangkum, mencocokkan, menjelaskan
+Feedback System Learning Agent Mengumpulkan feedback, menyesuaikan model
+3.2 Aliran Keputusan
+Sistem JobIQ mengikuti prinsip Augmentation di mana AI memperkuat kemampuan manusia
+tanpa mengambil alih keputusan:
+1. Fase Pengumpulan (AI-Driven): AI secara otomatis mengunjungi platform rekrutmen
+dan mengumpulkan ratusan lowongan baru setiap harinya.
+2. Fase Penyaringan (AI-Driven): AI menyaring lowongan berdasarkan profil pengguna,
+menghasilkan daftar 10-20 lowongan paling relevan dari ratusan yang tersedia.
+3. Fase Evaluasi (Human-Driven): Pengguna meninjau rekomendasi, membaca ringkasan
+AI, dan mengevaluasi berdasarkan preferensi subjektif yang tidak bisa ditangkap AI (bu-
+daya kerja, gut feeling, nilai personal).
+4. Fase Keputusan (Human-Driven): Pengguna memutuskan untuk melamar atau tidak.
+AI tidak pernah mengirim lamaran atas nama pengguna.
+5. Fase Pembelajaran (Collaborative):Feedback pengguna dikumpulkan untuk meningkatkan
+akurasi rekomendasi pada siklus berikutnya.
+5
+
+
+--- Page 7 ---
+Interaksi Komputer dan Manusia — Teknik Komputer UI Progress Report 2
+1. Fase Pengumpulan (AI-Driven): Mengumpulkan ratusan lowongan
+baru secara otomatis.
+2. Fase Penyaringan (AI-Driven): Menyaring dan menghasilkan 10-20
+lowongan paling relevan.
+3. Fase Evaluasi (Human-Driven): Pengguna membaca ringkasan AI &
+mengevaluasi preferensi subjektif.
+4. Fase Keputusan (Human-Driven): Pengguna memutuskan dan mela-
+mar secara mandiri.
+5. Fase Pembelajaran (Collaborative): Feedback digunakan untuk
+menyesuaikan model AI.
+Feedback Loop
+Figure 2: Aliran Keputusan Sistem JobIQ
+Contribution Log
+Bagian ini wajib diisi di setiap milestone. Peer evaluation akan didasarkan pada log ini. Je-
+laskan secara spesifik kontribusi masing-masing anggota.
+Anggota Kontribusi Spesifik %
+Alexander Christhian
+(2306267025)
+Arsitektur AIGC, penyusunan dokumen 25%
+Rowen Rodotua Hara-
+hap
+Data Strategy: Sumber Data 25%
+Bryan Herdianto
+(2306210885)
+Data Strategy: Format & Preprocessing,
+Mekanisme Pelabelan
+25%
+Muhammad Riyan
+Satrio Wibowo
+(2306229323)
+System Concept Diagram, review keselu-
+ruhan
+25%
+Total 100%
+6

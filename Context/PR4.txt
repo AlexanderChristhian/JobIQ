@@ -1,0 +1,635 @@
+--- Page 1 ---
+Progress Report 4
+Hi-Fi Prototype, Trust, & Accessibility
+JobIQ: Intelligent Job Discovery Agent
+Kelompok: 7A
+1. Alexander Christhian (2306267025)
+2. Rowen Rodotua Harahap (2306250604)
+3. Bryan Herdianto (2306210885)
+4. Muhammad Riyan Satrio Wibowo (2306229323)
+Mata Kuliah: Interaksi Komputer dan Manusia
+Teknik Komputer – Universitas Indonesia
+Semester Genap 2025/2026
+
+
+--- Page 2 ---
+Contents
+1 Hi-Fi Prototype 2
+1.1 Ringkasan Produk . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.2 Tujuan Desain Hi-Fi . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.3 Screenshot Hi-Fi Prototype . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.4 Perubahan dari Lo-Fi ke Hi-Fi . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+2 Trust & Explainability Features 8
+2.1 Confidence Score / Indikator Kepastian . . . . . . . . . . . . . . . . . . . . . 8
+2.2 Penjelasan Keputusan AI . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+2.3 User Control & Override . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+2.4 Desain Kepercayaan untuk Persona . . . . . . . . . . . . . . . . . . . . . . . . 10
+3 Error Handling Design 10
+3.1 Kondisi AI Gagal / Tidak Y akin . . . . . . . . . . . . . . . . . . . . . . . . . 10
+3.2 Kondisi Input Tidak V alid . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+3.3 Fallback & Graceful Degradation . . . . . . . . . . . . . . . . . . . . . . . . . 11
+3.4 Matriks Error Handling . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+4 Accessibility Check 12
+5 Updated Wizard of Oz Script 14
+5.1 Tujuan Pengujian . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+5.2 Peran . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+5.3 Skenario 1: Upload CV dan Rekomendasi Awal . . . . . . . . . . . . . . . . . 14
+5.4 Skenario 2: Trust Feature pada Rekomendasi . . . . . . . . . . . . . . . . . . 15
+5.5 Skenario 3: User Override dan Feedback . . . . . . . . . . . . . . . . . . . . . 15
+5.6 Skenario 4: Error Handling . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+5.7 Data yang Dikumpulkan . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+Contribution Log 16
+1
+
+
+--- Page 3 ---
+1 Hi-Fi Prototype
+1.1 Ringkasan Produk
+JobIQ adalah aplikasi web berbasis AI yang membantu pencari kerja menemukan lowongan
+yang relevan tanpa harus memindai ratusan hasil dari berbagai platform secara manual. Sis-
+tem menggunakan headless browser untuk mengumpulkan lowongan dari platform rekrutmen,
+lalu LLM membaca deskripsi pekerjaan, mengekstrak informasi penting, membuat ringkasan,
+menghitung kecocokan dengan profil pengguna, dan menjelaskan alasan rekomendasi.
+Peran AI di JobIQ adalah sebagai scout dan analis awal. AI mempercepat pekerjaan repeti-
+tif seperti scraping, filtering, deduplication, dan summarization. Keputusan strategis tetap be-
+rada di tangan pengguna: memilih lowongan, memverifikasi perusahaan, menyimpan kandidat
+lowongan, dan memutuskan apakah akan melamar.
+1.2 Tujuan Desain Hi-Fi
+Hi-fi prototype dirancang untuk menjawab kebutuhan dua persona utama dari progress report
+sebelumnya:
+1. Andi, fresh graduate yang cenderung over-trust terhadap AI. Desain perlu menahan peng-
+guna agar tidak menerima hasil AI secara buta, terutama lewat indikator risiko, match
+reasoning, dan peringatan ketika AI tidak yakin.
+2. Siti, senior engineer yang cenderung skeptis terhadap AI. Desain perlu menunjukkan sum-
+ber data, alasan filter, potensi gap, dan kontrol manual agar sistem terasa dapat diaudit.
+Karena konteks penggunaan utama adalah desktop browser, rancangan memakai layout dash-
+board lebar dengan panel navigasi, daftar rekomendasi, area detail lowongan, dan modul penje-
+lasan AI.
+1.3 Screenshot Hi-Fi Prototype
+Halaman Profile & CV Upload menjadi titik awal personalisasi. Pengguna dapat mengunggah
+CV dalam format PDF atau DOCX, lalu sistem menampilkan ringkasan profil, skill utama, pen-
+galaman, profile strength, missing skills, dan rekomendasi role. Keputusan desain utama pada
+layar ini adalah membuat proses input terasa eksplisit: pengguna mengetahui data apa yang
+dipakai sistem sebelum rekomendasi lowongan dibuat.
+Dashboard rekomendasi menggunakan pola master-detail. Panel kiri membantu pengguna me-
+mindai beberapa kandidat lowongan secara cepat, sedangkan panel kanan menampilkan detail
+lowongan, status validasi, salary range, lokasi, tombol apply, dan JobIQ AI Analysis Summary .
+Match score ditampilkan dekat judul rekomendasi agar pengguna cepat memahami prioritas,
+2
+
+
+--- Page 4 ---
+Figure 1: Halaman Profile & CV Upload. Pengguna mengunggah CV , melihat kekuatan profil,
+skill yang kurang, dan rekomendasi role awal.
+3
+
+
+--- Page 5 ---
+Figure 2: Dashboard rekomendasi JobIQ. Panel kiri menampilkan daftar lowongan dan match
+score, panel kanan menampilkan detail lowongan dan analisis AI.
+4
+
+
+--- Page 6 ---
+tetapi tetap disertai alasan dan potensi gap agar angka tidak menjadi satu-satunya dasar keputu-
+san.
+Figure 3: Halaman Saved Jobs. Pengguna menyimpan lowongan, membandingkan kandidat,
+memberi catatan pribadi, dan mengurutkan berdasarkan match score.
+Halaman Saved Jobs mendukung proses evaluasi manusia. Pengguna dapat membandingkan
+maksimal tiga lowongan berdasarkan match score, rentang gaji, commute, culture rating, dan
+catatan personal. Fitur ini memperkuat prinsip augmentation karena AI hanya menyusun infor-
+masi, sementara keputusan akhir tetap dilakukan pengguna.
+Application Tracker membantu pengguna mengelola proses setelah melamar. Setiap kartu da-
+pat memuat saran AI yang kontekstual, misalnya meninjau portfolio, menyiapkan pertanyaan
+5
+
+
+--- Page 7 ---
+Figure 4: Application Tracker. Lowongan yang sudah dilamar dikelompokkan ke tahap Applied,
+Screening, Interviewing, dan Offer.
+6
+
+
+--- Page 8 ---
+interview, mengirim follow-up, atau menegosiasikan offer. Status lowongan dipisahkan secara
+visual agar progres mudah dipantau tanpa mengandalkan ingatan pengguna.
+Figure 5: AI Interview Session. Modul latihan interview menyediakan pertanyaan, input jawa-
+ban, confidence score, clarity score, kata kunci terdeteksi, dan checklist persiapan.
+Modul AI Interview Session dipakai sebagai fitur pendukung setelah pengguna menemukan
+lowongan yang sesuai. Desain menampilkan feedback real-time berupa confidence score, clarity
+and pacing, keyword yang terdeteksi, dan checklist persiapan. Feedback bersifat diagnostik,
+bukan penilaian final atas kelayakan kandidat.
+1.4 Perubahan dari Lo-Fi ke Hi-Fi
+Aspek Lo-Fi Prototype Hi-Fi Prototype
+7
+
+
+--- Page 9 ---
+Struktur halaman Fokus pada wireframe alur
+dasar: input profil, daftar
+lowongan, dan detail
+lowongan.
+Menggunakan dashboard
+lengkap dengan navigasi,
+search, filter, saved jobs,
+tracker, dan interview prep.
+Representasi
+rekomendasi
+Lowongan ditampilkan
+sebagai daftar sederhana.
+Setiap lowongan memiliki
+match score, label verifikasi,
+salary range, lokasi, waktu
+update, dan indikator gap.
+Explainability Alasan rekomendasi masih
+berupa teks generik.
+Alasan dipisahkan menjadi
+”Why it matches you” dan
+”Potential Gaps” agar pengguna
+melihat sisi positif dan risiko.
+Kontrol pengguna Pengguna hanya memilih
+lowongan.
+Pengguna dapat mengedit
+profil, upload ulang CV , filter,
+sort, save, compare, memberi
+catatan, dan apply secara
+manual.
+State lanjutan Belum ada pengelolaan setelah
+melamar.
+Application Tracker memetakan
+proses ke Applied, Screening,
+Interviewing, dan Offer.
+Persiapan interview Belum ada. AI Interview Session
+menyediakan latihan, feedback,
+dan checklist berdasarkan
+lowongan yang dipilih.
+2 Trust & Explainability Features
+2.1 Confidence Score / Indikator Kepastian
+JobIQ menampilkan beberapa indikator kepastian yang berbeda konteksnya:
+1. AI Match Score . Skor seperti 92%, 88%, atau 76% menunjukkan kecocokan lowongan
+terhadap profil, preferensi, pengalaman, tech stack, lokasi, model kerja, dan rentang gaji
+pengguna.
+2. Profile Strength. Skor seperti 85% pada halaman profil menunjukkan seberapa lengkap
+data pengguna untuk menghasilkan rekomendasi yang akurat.
+3. Interview Feedback Score . Skor seperti confidence 88% dan clarity 72% pada modul
+interview menunjukkan kualitas jawaban latihan, bukan peluang diterima kerja.
+8
+
+
+--- Page 10 ---
+4. Risk Indicator. Label seperti ”V erified Job”, ”Potential Gaps”, dan ”Action Required”
+menunjukkan area yang perlu diverifikasi pengguna sebelum mengambil keputusan.
+Skor dikategorikan sebagai berikut:
+Rentang Skor Makna Perlakuan UI
+≥ 80% Kecocokan kuat Ditampilkan sebagai kandidat prioritas,
+tetapi tetap memuat alasan dan potensi gap.
+60–79% Perlu ditinjau Ditampilkan dengan penekanan pada gap,
+misalnya lokasi, senioritas, atau tech stack
+yang kurang sesuai.
+< 60% Kecocokan rendah atau
+AI tidak yakin
+Tidak dijadikan rekomendasi utama. Sistem
+dapat meminta pengguna memperjelas
+preferensi atau menampilkan hasil di bagian
+review manual.
+Desain ini penting untuk menghindari dua risiko: Andi terlalu percaya pada angka tinggi tanpa
+verifikasi, sedangkan Siti menolak sistem karena tidak melihat dasar penilaiannya.
+2.2 Penjelasan Keputusan AI
+Setiap rekomendasi JobIQ harus menjawab pertanyaan ”mengapa lowongan ini muncul?”. Pen-
+jelasan keputusan AI ditampilkan dalam bentuk ringkasan dan alasan terstruktur:
+1. Ringkasan AI. Dashboard menampilkan narasi singkat tentang hubungan lowongan den-
+gan latar belakang pengguna.
+2. Why it matches you . Sistem menyebutkan faktor positif, misalnya domain industri
+sesuai, pengalaman memenuhi syarat, skill cocok, lokasi sesuai, atau salary range ma-
+suk preferensi.
+3. Potential Gaps. Sistem juga menyebutkan risiko, misalnya kebijakan hybrid tidak sesuai,
+role membutuhkan stack tambahan, atau senioritas lebih tinggi dari pengalaman peng-
+guna.
+4. Sumber data. Setiap lowongan dapat diberi label sumber seperti LinkedIn, Glints, Kali-
+brr, JobStreet, atau Indeed agar pengguna tahu asal informasi.
+5. Traceable attributes. Poin seperti tech stack, gaji, lokasi, model kerja, dan status ver-
+ifikasi dipisahkan agar pengguna dapat membandingkan reasoning AI dengan deskripsi
+asli.
+Dengan struktur ini, AI tidak diperlakukan sebagai black box. Pengguna dapat melihat bahwa
+skor bukan angka acak, melainkan hasil pembobotan beberapa atribut yang dapat diaudit.
+9
+
+
+--- Page 11 ---
+2.3 User Control & Override
+Kontrol pengguna dibuat eksplisit di beberapa titik:
+1. Edit profil dan upload ulang CV. Jika rekomendasi terasa tidak relevan, pengguna dapat
+memperbarui sumber personalisasi.
+2. Filter dan sort . Pengguna dapat mengurutkan berdasarkan match score, memilih model
+kerja, lokasi, salary range, senioritas, dan sumber platform.
+3. Save dan compare . Pengguna dapat menyimpan lowongan dan membandingkan beber-
+apa pilihan sebelum melamar.
+4. Catatan pribadi. Pengguna dapat menambahkan catatan seperti ”benefit dekat gym” atau
+”referral dari teman”, yaitu informasi subjektif yang tidak dapat disimpulkan AI secara
+penuh.
+5. Feedback relevansi . Sistem menyediakan mekanisme feedback seperti thumbs up,
+thumbs down, hide, atau mark as irrelevant untuk memperbaiki siklus rekomendasi
+berikutnya.
+6. Apply manual. AI tidak pernah mengirim lamaran otomatis. Tombol ”Apply Externally”
+membawa pengguna ke sumber lowongan agar keputusan akhir tetap di tangan manusia.
+2.4 Desain Kepercayaan untuk Persona
+Persona Risiko Trust Fitur Mitigasi
+Andi Over-trust, mudah menerima
+semua rekomendasi AI dan
+rawan melamar lowongan
+palsu.
+V erified job label, warning pada
+potential gaps, indikator confidence
+rendah, ringkasan risiko, dan langkah
+apply yang tetap manual.
+Siti Under-trust, ragu AI mampu
+memahami nuansa senioritas,
+budaya kerja, remote policy,
+dan tech stack.
+Match reasoning rinci, sumber data,
+explain this filter, compare jobs,
+catatan pribadi, dan kontrol untuk
+override hasil ranking.
+3 Error Handling Design
+3.1 Kondisi AI Gagal / Tidak Y akin
+Ketika AI gagal memahami lowongan atau confidence rendah, sistem tidak boleh menyajikan
+hasil seolah-olah pasti benar. Desain error handling yang digunakan:
+10
+
+
+--- Page 12 ---
+1. Menampilkan label ”AI needs review” atau ”Low confidence” pada kartu lowongan.
+2. Menurunkan prioritas lowongan dari daftar rekomendasi utama.
+3. Menampilkan alasan ketidakpastian, misalnya ”salary tidak ditemukan”, ”remote policy
+ambigu”, atau ”deskripsi terlalu singkat”.
+4. Meminta pengguna memilih klarifikasi, misalnya apakah ”hybrid 3 days office” masih
+dapat diterima.
+5. Menyediakan tombol untuk melihat deskripsi asli agar pengguna dapat melakukan veri-
+fikasi manual.
+Contoh pesan UI:
+”JobIQ belum yakin dengan rekomendasi ini karena deskripsi lowongan tidak mencantumkan
+salary dan model kerja secara jelas. Periksa detail asli sebelum melamar .”
+3.2 Kondisi Input Tidak Valid
+Input tidak valid terutama terjadi pada proses upload CV dan pengisian preferensi. Sistem
+menangani kondisi ini dengan pesan spesifik di dekat sumber masalah.
+Kondisi Pesan UI Perbaikan yang Ditawarkan
+Format CV bukan PDF
+atau DOCX
+”File belum dapat dibaca.
+Gunakan PDF atau DOCX.”
+Tombol pilih file ulang dan
+daftar format yang diterima.
+CV hasil scan tidak
+terbaca OCR
+”Teks CV tidak terdeteksi
+dengan cukup jelas.”
+Sarankan upload versi digital
+atau isi profil secara manual.
+Preferensi salary kosong ”Isi rentang gaji agar
+rekomendasi lebih akurat.”
+Field salary diberi highlight
+dan contoh format.
+Lokasi atau model kerja
+ambigu
+”Pilih minimal satu preferensi
+lokasi atau model kerja.”
+Checkbox remote, hybrid,
+on-site, dan kota prioritas.
+Search/filter tidak
+menghasilkan data
+”Belum ada lowongan yang
+cocok dengan filter ini.”
+Tombol reset filter dan opsi
+memperluas radius pencarian.
+3.3 Fallback & Graceful Degradation
+Jika fitur AI atau scraping tidak berjalan, bagian non-AI tetap dapat digunakan. Graceful degra-
+dation dirancang sebagai berikut:
+1. Scraper gagal . Dashboard menampilkan hasil terakhir yang berhasil diambil, disertai
+timestamp dan pesan bahwa data belum diperbarui.
+11
+
+
+--- Page 13 ---
+2. LLM gagal merangkum . Sistem tetap menampilkan data mentah lowongan, link sum-
+ber, dan field yang berhasil diekstrak secara deterministik.
+3. Rekomendasi personalisasi gagal. Pengguna tetap dapat memakai search, filter manual,
+saved jobs, dan application tracker.
+4. Feedback loop belum cukup data . Sistem memberi rekomendasi berbasis profil awal
+dan menjelaskan bahwa akurasi akan membaik setelah pengguna memberi feedback.
+5. Interview AI tidak tersedia. Pengguna tetap dapat melihat checklist persiapan dan daftar
+pertanyaan statis berdasarkan role.
+3.4 Matriks Error Handling
+Error Dampak ke
+Pengguna
+Respons Sistem Kontrol Pengguna
+AI confidence
+rendah
+Pengguna berisiko
+salah memahami
+kualitas lowongan.
+Label low confidence,
+alasan ketidakpastian,
+dan peringkat
+diturunkan.
+Buka deskripsi asli,
+simpan untuk
+review, atau hide.
+Lowongan
+terindikasi palsu
+Pengguna berisiko
+membagikan CV ke
+sumber tidak aman.
+Warning, indikator
+risiko, dan anjuran
+verifikasi perusahaan.
+Abaikan
+rekomendasi atau
+buka sumber untuk
+cek manual.
+CV tidak valid Rekomendasi tidak
+dapat dipersonalisasi.
+Error spesifik di area
+upload.
+Upload ulang atau
+isi profil manual.
+Scraping gagal Data lowongan tidak
+terbaru.
+Gunakan cache
+terakhir dan tampilkan
+timestamp.
+Retry, perluas
+sumber, atau
+gunakan pencarian
+manual.
+Filter terlalu sempit Tidak ada hasil. Empty state dengan
+saran reset filter.
+Reset filter atau
+ubah preferensi.
+4 Accessibility Check
+Evaluasi accessibility menggunakan prinsip Universal Design. Karena prototype saat ini berupa
+mockup hi-fi, beberapa aspek perlu diverifikasi ulang saat implementasi HTML/CSS, terutama
+kontras warna aktual dan navigasi keyboard.
+12
+
+
+--- Page 14 ---
+Prinsip Terpenuhi? Implementasi
+Kontras warna memadai
+(WCAG AA)
+Sebagian Teks utama putih di latar gelap memiliki
+kontras tinggi. Teks sekunder abu-abu
+dan ungu pada latar gelap perlu diuji lagi
+dengan contrast checker saat
+implementasi.
+Ukuran teks dapat dibaca Y a Heading besar, label kartu, dan body
+text cukup jelas untuk konteks desktop.
+Informasi kritis seperti match score dan
+status dibuat menonjol.
+Navigasi alternatif (keyboard) Dirancang Semua komponen interaktif perlu
+menjadi focusable: search, filter, upload,
+save, compare, apply, tracker card, dan
+input interview. Focus state harus
+terlihat jelas.
+Alt text untuk gambar/ikon Dirancang Ikon seperti upload, warning, verified,
+save, delete, notification, dan settings
+perlu diberi accessible label. Screenshot
+dalam laporan diberi caption deskriptif.
+Hierarki visual yang jelas Y a Dashboard memakai navigasi utama,
+judul halaman, panel daftar, panel detail,
+kartu rekomendasi, dan status yang
+konsisten.
+Multimodal feedback (visual
++ teks)
+Y a Status tidak hanya mengandalkan warna.
+Contoh: ”V erified Job”, ”Potential
+Gaps”, ”Action Required”, dan
+persentase skor tetap ditulis sebagai teks.
+Kontrol pengguna terhadap
+AI
+Y a Pengguna dapat mengedit profil,
+mengubah filter, menyimpan,
+membandingkan, memberi feedback,
+dan melamar manual.
+Privasi dan keamanan data Dirancang Data CV bersifat sensitif sehingga
+desain perlu menyediakan informasi
+penggunaan data, opsi hapus CV , dan
+batasan bahwa AI tidak melamar
+otomatis.
+13
+
+
+--- Page 15 ---
+5 Updated Wizard of Oz Script
+5.1 Tujuan Pengujian
+Wizard of Oz digunakan untuk menguji apakah pengguna memahami rekomendasi AI, mem-
+percayai sistem secara proporsional, dan tetap merasa memegang kendali. Pada pengujian ini,
+evaluator bertindak sebagai sistem AI di belakang layar: memilih rekomendasi, menampilkan
+match reasoning, membuat error state, dan menyesuaikan hasil berdasarkan feedback pengguna.
+5.2 Peran
+Peran Tugas
+Partisipan Berperan sebagai pencari kerja yang menggunakan JobIQ untuk
+menemukan, mengevaluasi, menyimpan, dan melamar
+lowongan.
+Wizard Berperan sebagai AI Scraper, LLM Analyzer, dan Feedback
+System. Wizard menyiapkan daftar lowongan, skor, alasan, gap,
+dan error state.
+Observer Mencatat kebingungan, tingkat trust, keputusan override, waktu
+penyelesaian tugas, dan komentar verbal partisipan.
+5.3 Skenario 1: Upload CV dan Rekomendasi Awal
+Step Aksi Pengguna Respons Sistem yang
+Terlihat
+Aksi Wizard
+1 Pengguna membuka
+halaman Profile & CV
+Upload.
+Sistem menampilkan area
+drag and drop, profile
+summary, dan panel AI
+Career Insights.
+Menyiapkan kondisi
+profil kosong.
+2 Pengguna memilih file
+CV .
+Sistem menampilkan proses
+membaca CV dan
+mengekstrak skill.
+Wizard menunggu 3–5
+detik lalu menampilkan
+profile strength 85%.
+3 Pengguna melihat
+missing skills dan
+recommended roles.
+Sistem menampilkan skill
+yang kurang dan dua role
+rekomendasi.
+Wizard memilih hasil
+berdasarkan persona
+pengguna.
+14
+
+
+--- Page 16 ---
+4 Pengguna klik ”View
+All Matches”.
+Sistem pindah ke dashboard
+rekomendasi.
+Wizard menyiapkan
+daftar lowongan dengan
+skor beragam.
+5.4 Skenario 2: Trust Feature pada Rekomendasi
+Step Aksi Pengguna Respons Sistem yang
+Terlihat
+Aksi Wizard
+1 Pengguna memilih
+lowongan dengan
+92% match score.
+Panel detail menampilkan AI
+Analysis Summary.
+Wizard menampilkan
+alasan cocok: domain,
+skill, salary, dan lokasi.
+2 Pengguna membuka
+bagian ”Potential
+Gaps”.
+Sistem menampilkan gap
+seperti hybrid policy dan
+React specialization.
+Wizard memberi satu gap
+yang realistis agar
+pengguna tidak
+over-trust.
+3 Pengguna
+membandingkan
+dengan lowongan
+76%.
+Sistem menampilkan
+perbedaan skor dan alasan.
+Wizard menjelaskan
+bahwa skor lebih rendah
+karena salary atau lokasi
+kurang sesuai.
+4 Pengguna menyimpan
+lowongan terbaik.
+Lowongan masuk ke Saved
+Jobs.
+Wizard mencatat apakah
+alasan AI memengaruhi
+pilihan.
+5.5 Skenario 3: User Override dan Feedback
+Step Aksi Pengguna Respons Sistem yang
+Terlihat
+Aksi Wizard
+1 Pengguna merasa
+rekomendasi AI
+kurang sesuai.
+Sistem menyediakan filter,
+hide, save, compare, dan
+feedback relevansi.
+Wizard menampilkan
+opsi thumbs down atau
+mark as irrelevant.
+2 Pengguna memberi
+thumbs down pada
+lowongan
+outsourcing.
+Sistem meminta alasan
+singkat.
+Wizard menambahkan
+preferensi ”hindari
+outsourcing” ke siklus
+berikutnya.
+3 Pengguna
+memperbarui filter
+remote-only.
+Daftar rekomendasi berubah. Wizard menghapus
+lowongan on-site dan
+menaikkan remote role.
+15
+
+
+--- Page 17 ---
+4 Pengguna tetap
+memilih apply
+manual.
+Sistem membuka sumber
+eksternal, bukan mengirim
+lamaran otomatis.
+Wizard mencatat apakah
+pengguna paham bahwa
+keputusan akhir
+miliknya.
+5.6 Skenario 4: Error Handling
+Step Aksi Pengguna Respons Sistem yang
+Terlihat
+Aksi Wizard
+1 Pengguna
+mengunggah CV scan
+yang tidak terbaca.
+Sistem menampilkan pesan
+”Teks CV tidak terdeteksi
+dengan cukup jelas.”
+Wizard menolak file dan
+menawarkan isi profil
+manual.
+2 Pengguna membuka
+lowongan dengan data
+ambigu.
+Sistem memberi label low
+confidence dan alasan
+salary/model kerja tidak
+jelas.
+Wizard menampilkan
+raw job description
+sebagai fallback.
+3 Pengguna menekan
+retry scraper.
+Sistem menampilkan status
+gagal memperbarui data dan
+memakai cache terakhir.
+Wizard menampilkan
+timestamp data terakhir.
+4 Pengguna mereset
+filter terlalu sempit.
+Sistem kembali
+menampilkan daftar
+lowongan.
+Wizard mencatat apakah
+empty state mudah
+dipahami.
+5.7 Data yang Dikumpulkan
+1. Apakah pengguna memahami arti match score dan confidence score.
+2. Apakah pengguna membaca bagian ”Why it matches you” dan ”Potential Gaps” sebelum
+mengambil keputusan.
+3. Apakah pengguna merasa dapat mengontrol dan mengoreksi rekomendasi AI.
+4. Apakah error message cukup spesifik untuk membantu pengguna memperbaiki input.
+5. Apakah pengguna tetap sadar bahwa AI tidak melamar pekerjaan secara otomatis.
+Contribution Log
+16
+
+
+--- Page 18 ---
+Anggota Kontribusi Spesifik %
+Alexander Christhian
+(2306267025)
+Penyusunan bagian Hi-Fi Prototype, pemetaan
+screenshot, dan penjelasan keputusan desain visual.
+25%
+Rowen Rodotua
+Harahap (2306250604)
+Penyusunan Trust & Explainability Features,
+confidence score, user control, dan integrasi laporan
+LaTeX.
+25%
+Bryan Herdianto
+(2306210885)
+Penyusunan Error Handling Design, fallback state,
+graceful degradation, dan matriks error.
+25%
+Muhammad Riyan
+Satrio Wibowo
+(2306229323)
+Penyusunan Accessibility Check, Updated Wizard
+of Oz Script, dan review konsistensi laporan.
+25%
+Total 100%
+17

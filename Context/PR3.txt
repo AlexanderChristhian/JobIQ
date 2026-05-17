@@ -1,0 +1,490 @@
+--- Page 1 ---
+Progress Report 3
+Lo-Fi Prototype & Wizard of Oz
+JobIQ: Intelligent Job Discovery Agent
+Kelompok: 7A
+1. Alexander Christhian (2306267025)
+2. Rowen Rodotua Harahap (2306250604)
+3. Bryan Herdianto (2306210885)
+4. Muhammad Riyan Satrio Wibowo (2306229323)
+Mata Kuliah: Interaksi Komputer dan Manusia
+Teknik Komputer — Universitas Indonesia
+Semester Genap 2025/2026
+
+
+--- Page 2 ---
+Contents
+1 Lo-Fi Prototype 2
+1.1 Layar 1: Onboarding & Unggah CV . . . . . . . . . . . . . . . . . . . . . . . 2
+1.2 Layar 2: Pengaturan Preferensi . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.3 Layar 3: Dashboard Rekomendasi Lowongan . . . . . . . . . . . . . . . . . . 4
+1.4 Layar 4: Detail Lowongan & Penjelasan AI . . . . . . . . . . . . . . . . . . . 5
+2 Interaction Flow 6
+2.1 Penjelasan Alur Interaksi . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+3 AI Guidelines Checklist 8
+4 Wizard of Oz Script 11
+4.1 Skenario 1: Unggah CV & Ekstraksi Profil . . . . . . . . . . . . . . . . . . . . 11
+4.2 Skenario 2: Tampilan Rekomendasi Lowongan . . . . . . . . . . . . . . . . . 12
+4.3 Skenario 3: Feedback & Iterasi Rekomendasi . . . . . . . . . . . . . . . . . . 13
+Contribution Log 14
+1
+
+
+--- Page 3 ---
+1 Lo-Fi Prototype
+Berikut adalah wireframe lo-fi dari empat layar utama sistemJobIQ, yang dirancang berdasarkan
+prinsip Direct Manipulation (Hutchins et al., 1985) dan strategiscaffolding (Zamfirescu-Pereira
+et al., 2023). Setiap layar dirancang untuk meminimalkan Gulf of Execution dan Gulf of Evalu-
+ation dengan menyediakan interface terstruktur alih-alih blank canvas.
+1.1 Layar 1: Onboarding & Unggah CV
+Figure 1: Wireframe Layar Onboarding & Unggah CV
+Fungsi layar: Halaman pertama yang dilihat pengguna baru. Menerapkan G1 (Make clear
+what the system can do ) dengan menjelaskan kemampuan dan batasan sistem secara eksplisit.
+Area unggah CV dirancang dengan panduan format yang jelas (scaffolding) agar pengguna tidak
+menghadapi blank canvas. Indikator langkah (1 dari 3) memberikan progress feedback sesuai
+prinsip Gulf of Evaluation.
+2
+
+
+--- Page 4 ---
+1.2 Layar 2: Pengaturan Preferensi
+Figure 2: Wireframe Layar Pengaturan Preferensi
+Fungsi layar: Mengimplementasikan scaffolding (Zamfirescu-Pereira, 2023) dengan menye-
+diakan elemen antarmuka terstruktur: dropdown untuk lokasi dan model kerja, tag selector
+untuk tech stack, slider untuk gaji, serta tombol quick filter untuk preferensi umum. Profil
+yang terdeteksi otomatis dari CV mengurangi articulatory distance (Hutchins, 1985). Di be-
+lakang layar, setiap pilihan pengguna diterjemahkan menjadiprompt yang telah dioptimasi (G7:
+Support efficient invocation).
+3
+
+
+--- Page 5 ---
+1.3 Layar 3: Dashboard Rekomendasi Lowongan
+Figure 3: Wireframe Dashboard Rekomendasi Lowongan
+Fungsi layar: Dashboard utama yang menampilkan hasil rekomendasi AI. Menerapkan beber-
+apa guidelines Amershi (2019): ringkasan agregat di atas (G2), confidence score dengan kode
+warna hijau/kuning/merah pada setiap kartu, tombol “Mengapa lowongan ini muncul?” (G11),
+tombol dismiss (G8), dan mekanisme feedback granular (G15). Indikator progres menampilkan
+status proses scraping dan analisis secara transparan untuk memperkecil Gulf of Evaluation .
+Tombol “Sesuaikan Filter” dan “Cari Ulang” mendukungG9 (efficient correction).
+4
+
+
+--- Page 6 ---
+1.4 Layar 4: Detail Lowongan & Penjelasan AI
+Figure 4: Wireframe Detail Lowongan & Penjelasan AI
+Fungsi layar: Halaman detail yang menampilkan informasi lengkap tentang lowongan yang
+direkomendasikan. Menerapkan G11 (Make clear why the system did what it did ) dengan
+menampilkan breakdown skor kecocokan per aspek (tech stack, lokasi, gaji) beserta penjelasan
+naratif. G2 diterapkan melalui disclaimer akurasi yang jujur. Tombol “Simpan” dan “Buka
+Sumber” memberikan kontrol langsung, sementara mekanismefeedback di bagian bawah men-
+dukung G15 (granular feedback).
+5
+
+
+--- Page 7 ---
+2 Interaction Flow
+Diagram berikut menggambarkan alur interaksi lengkap pengguna dengan sistem JobIQ, dari
+tahap onboarding hingga iterasi feedback. Setiap node diberi kode warna: biru untuk aksi
+pengguna, hijau untuk proses AI,oranye untuk titik keputusan manusia, danungu untuk output
+sistem.
+Pengguna membuka JobIQ
+Halaman Onboarding
+(G1: kemampuan sistem)
+Unggah CV
+(PDF/DOCX)
+AI: Ekstraksi prol
+dari CV
+Tampilkan prol
+terdeteksi (skills, exp.)
+Prol
+sesuai?
+Edit prol
+secara manual
+Atur preferensi
+(lokasi, gaji, model kerja)
+AI: Scraping &
+analisis lowongan
+Progress indicator
+(live status)
+Dashboard rekomendasi
+(skor & kode warna)
+Ada lowongan
+menarik?
+Sesuaikan lter
+atau Cari Ulang (G9)
+Buka Detail
+Lowongan
+Penjelasan AI:
+match reasoning (G11)
+Simpan atau
+dismiss?
+Simpan /
+Bookmark
+Dismiss
+(G8)
+Berikan feedback
+granular (G15)
+AI: Update model
+ranking (G13, G14)
+Notikasi penyesuaian
+(G14, G18)
+Ya
+Tidak
+Ya
+Tidak
+Simpan Dismiss
+Lanjut
+Iterasi berikutnya
+Figure 5: Interaction Flow Diagram — Alur Interaksi Pengguna dengan JobIQ
+2.1 Penjelasan Alur Interaksi
+1. Fase Onboarding (Langkah 1–2): Pengguna disambut dengan penjelasan kemampuan
+dan batasan sistem (G1), lalu diminta mengunggah CV melalui antarmuka yang dilengkapi
+panduan format — menghindari blank canvas sesuai rekomendasi Zamfirescu-Pereira
+(2023).
+6
+
+
+--- Page 8 ---
+2. Fase Ekstraksi & Preferensi (Langkah 3–6): AI mengekstrak profil dari CV secara
+otomatis. Pengguna diberikan kesempatan untuk mengoreksi ( G9) sebelum mengatur
+preferensi melalui elemenDirect Manipulation(slider, dropdown, tag selector) yang men-
+gurangi Articulatory Distance (Hutchins, 1985).
+3. Fase Rekomendasi (Langkah 7–10):AI melakukan scraping dan analisis denganprogress
+indicator real-time untuk memperkecil Gulf of Evaluation . Dashboard menampilkan
+rekomendasi dengan skor kecocokan dan kode warna. Jika tidak ada lowongan menarik,
+pengguna dapat menyesuaikan filter tanpa mengulang dari nol (G9).
+4. Fase Detail & Keputusan (Langkah 11–14): Pengguna membuka detail lowongan den-
+gan penjelasan AI (G11). Keputusan untuk menyimpan atau men-dismiss sepenuhnya di
+tangan pengguna — AI tidak melamar atas nama pengguna.
+5. Fase Feedback & Iterasi (Langkah 15–17): Pengguna memberikan feedback granular
+(G15). AI meng- update model secara gradual (G14) dan memberikan notifikasi peruba-
+han (G18). Siklus ini berulang pada sesi berikutnya, menciptakan loop pembeljaran yang
+berkelanjutan.
+Catatan desain: Setiap titik keputusan (diamond oranye) merupakan momen di mana
+manusia mengambil keputusan — bukan AI. Ini konsisten dengan prinsip human-in-the-loop
+dan memastikan pengguna tetap merasa memiliki kendali (locus of control).
+7
+
+
+--- Page 9 ---
+3 AI Guidelines Checklist
+Berikut adalah evaluasi desain JobIQ terhadap 18Guidelines for Human-AI Interaction (Amer-
+shi et al., 2019), yang telah divalidasi secara empiris pada 785 aplikasi produk AI. Setiapguide-
+line dipetakan ke fitur spesifik JobIQ pada tiga fase interaksi: Initially, During Interaction, dan
+Over Time.
+No Guideline Terpenuhi? Penjelasan / Implementasi
+F ase Initially
+G1 Make clear what
+the system can
+do
+✓ Halaman onboarding (Gambar 1)
+menampilkan penjelasan eksplisit: “ Jo-
+bIQ membantu Anda menemukan lowongan
+kerja dari LinkedIn, Glints, dan Kalibrr
+yang paling cocok dengan profil CV Anda.
+Sistem tidak melamar atas nama Anda
+— keputusan tetap di tangan Anda. ” Ini
+menetapkan ekspektasi pengguna sejak awal
+dan mencegah over-trust.
+G2 Make clear how
+well the system
+can do what it
+can do
+✓ Dashboard dan halaman detail (Gambar 4)
+menampilkan confidence score (0–100%)
+pada setiap rekomendasi, disertai dis-
+claimer: “Akurasi pencocokan: 80–90% un-
+tuk tech stack. Aspek budaya kerja mungkin
+kurang akurat.”
+F ase During Interaction
+G3 Time services
+based on context
+✓ Jadwal scraping otomatis disesuaikan den-
+gan pola penggunaan: batch lowongan baru
+siap pada pagi hari (07.00–09.00) saat peng-
+guna biasanya mengecek dashboard.
+G4 Show contextu-
+ally relevant in-
+formation
+✓ Kartu rekomendasi pada dashboard (Gam-
+bar 3) menampilkan informasi paling relevan
+di awal: nama posisi, perusahaan, tech stack
+yang cocok, model kerja, dan rentang gaji —
+tanpa perlu membuka halaman detail.
+G5 Match relevant
+social norms
+✓ Bahasa antarmuka bersifat suportif dan em-
+patik: “ Hari ini ada 5 lowongan baru yang
+cocok dengan profilmu!” alih-alih “5 results
+found.” Sistem menghindari kata-kata yang
+berpotensi membuat pengguna merasa tidak
+memadai.
+8
+
+
+--- Page 10 ---
+No Guideline Terpenuhi? Penjelasan / Implementasi
+G6 Mitigate social
+biases
+✓ Sistem tidak memfilter berdasarkan usia,
+gender, atau institusi pendidikan secara de-
+fault. Filter tambahan dapat diaktifkan se-
+cara manual dengan penjelasan “Explain this
+filter” untuk transparansi.
+G7 Support efficient
+invocation
+✓ Alih-alih blank canvas, JobIQ menyediakan
+scaffolding berupa tombol cepat, dropdown,
+dan template (Gambar 2). Di belakang la-
+yar, pilihan pengguna diterjemahkan men-
+jadi prompt yang telah dioptimasi oleh en-
+gineer.
+G8 Support efficient
+dismissal
+✓ Rekomendasi yang tidak relevan dapat di-
+dismiss dengan satu klik tombol “ ×” pada
+kartu lowongan (Gambar 3). Lowongan
+yang di-dismiss tidak muncul kembali, tetapi
+dapat diakses melalui tab “Dismissed”.
+G9 Support efficient
+correction
+✓ Pengguna dapat memperbaiki hasil AI tanpa
+mengulang dari nol: (1) Edit sebagian fil-
+ter preferensi secarainline, (2) Tombol “Cari
+ulang dengan penyesuaian” yang memperta-
+hankan filter sebelumnya, (3) Undo peruba-
+han filter.
+G10 Scope services
+when in doubt
+✓ Jika AI tidak yakin dengan klasifikasi su-
+atu lowongan (misal: model kerja ambigu),
+sistem menampilkan lowongan dengan label
+peringatan “Perlu verifikasi manual: model
+kerja tidak jelas” (terlihat pada kartu kuning
+di Gambar 3).
+G11 Make clear why
+the system did
+what it did
+✓ Setiap rekomendasi dilengkapi tombol
+“Mengapa lowongan ini muncul? ” yang
+menampilkan breakdown skor per aspek
+(tech stack, lokasi, gaji) beserta penjelasan
+naratif (Gambar 4).
+F ase Over Time
+G12 Remember re-
+cent interactions
+✓ Sistem mengingat lowongan yang sudah dil-
+ihat, di-bookmark, atau di-dismiss. Saat sesi
+berikutnya, lowongan yang sudah ditinjau
+ditandai dengan ikon “sudah dilihat”.
+9
+
+
+--- Page 11 ---
+No Guideline Terpenuhi? Penjelasan / Implementasi
+G13 Learn from user
+behavior
+✓ Sistem menggunakan pola feedback
+(Thumbs Up/Down), riwayat klik, dan
+preferensi yang diubah untuk menyesuaikan
+bobot pemeringkatan. Misalnya, jika peng-
+guna konsisten men- dismiss lowongan dari
+perusahaan outsourcing, sistem menurunkan
+prioritasnya.
+G14 Update and
+adapt cautiously
+✓ Perubahan pada model pemeringkatan
+dilakukan secara gradual. Sistem
+menampilkan notifikasi: “ Berdasarkan
+feedback Anda, kami sedikit menyesuaikan
+prioritas rekomendasi. Anda dapat mereset
+kapan saja.”
+G15 Encourage
+granular feed-
+back
+✓ Mekanisme feedback bukan hanya biner
+(Yes/No), tetapi granular: Thumbs Up,
+Thumbs Down, serta opsi catatan spesifik
+(“Hindari outsourcing ”, “ Hindari perusa-
+haan < 1 tahun”), yang juga berfungsi se-
+bagai data pelatihan RLHF.
+G16 Convey conse-
+quences of user
+actions
+✓ Saat pengguna mengubah filter, sistem
+menampilkan preview: “ Dengan filter ini,
+estimasi jumlah lowongan cocok berkurang
+dari 15 menjadi 3.”
+G17 Provide global
+controls
+✓ Pengaturan global tersedia di halaman Set-
+tings: on/off notifikasi, frekuensi scraping,
+sumber platform yang aktif, serta opsi “ Re-
+set semua preferensi AI”.
+G18 Notify users
+about changes
+✓ Sistem mengirim notifikasi saat ada pe-
+rubahan signifikan: lowongan baru yang
+cocok, perubahan status lowongan (di-
+tutup/diperpanjang), atau pembaruan model
+AI.
+10
+
+
+--- Page 12 ---
+4 Wizard of Oz Script
+Berikut adalah tiga skenario Wizard of Oz (WoZ) yang dirancang untuk menguji prototipe lo-fi
+JobIQ. Metode WoZ (Dow et al., 2005) memungkinkan pengujian pengalaman interaksi peng-
+guna tanpa memerlukan implementasi AI yang lengkap, di mana seorang operator manusia
+(“Wizard”) mensimulasikan perilaku sistem di balik layar.
+4.1 Skenario 1: Unggah CV & Ekstraksi Profil
+Komponen Deskripsi
+Task pengguna Pengguna baru ingin memulai pencarian kerja dengan mengunggah
+CV-nya ke sistem JobIQ untuk mendapatkan rekomendasi lowongan
+yang sesuai.
+Input pengguna Pengguna mengunggah file CV dalam format PDF melalui area ung-
+gah pada halaman Onboarding (Gambar 1), lalu menekan tombol
+“Mulai Analisis CV”.
+Aksi wizard Wizard membaca CV secara manual di layar tersembunyi, mengi-
+dentifikasi tech stack (React, Node.js, Python), pengalaman kerja (2
+tahun Frontend Developer), dan kualifikasi pendidikan. Wizard ke-
+mudian memasukkan hasil ekstraksi ke template profil yang akan
+muncul di layar pengguna.
+Output sistem
+(simulasi)
+Sistem menampilkan halaman Pengaturan Preferensi (Gambar 2)
+dengan kotak hijau “Terdeteksi dari CV Anda:” yang berisi: Skills:
+React, Node.js, Python; Pengalaman: 2 tahun Frontend Dev. Sistem
+juga menampilkan rekomendasi posisi: “Frontend Developer atau
+Fullstack Developer”.
+Kondisi error Jika CV dalam format tidak didukung (misalnya gambar/scan tanpa
+OCR), Wizard menampilkan pesan: “ Format CV tidak dapat
+diproses. Silakan unggah dalam format PDF teks atau DOCX. ” Jika
+CV terlalu singkat ( < 1 halaman), sistem menampilkan: “ Informasi
+pada CV terbatas. Anda dapat menambahkan skills dan pengalaman
+secara manual.”
+11
+
+
+--- Page 13 ---
+4.2 Skenario 2: Tampilan Rekomendasi Lowongan
+Komponen Deskripsi
+Task pengguna Setelah mengatur preferensi, pengguna ingin melihat daftar lowon-
+gan kerja yang direkomendasikan oleh AI berdasarkan profil CV dan
+preferensi yang telah diatur.
+Input pengguna Pengguna mengatur preferensi melalui antarmuka terstruktur pada
+halaman Pengaturan Preferensi (Gambar 2): memilih lokasi (Jakarta,
+Bandung), model kerja (Remote/Hybrid), mengonfirmasi tech stack
+(React, Node.js, Python), mengatur rentang gaji (8–20 juta/bulan),
+lalu menekan tombol “Cari Lowongan”.
+Aksi wizard Wizard menyiapkan daftar 10–15 lowongan yang sudah dikurasi se-
+cara manual sebelumnya. Untuk setiap lowongan, Wizard menen-
+tukan skor kecocokan (berdasarkan kesesuaiantech stack, lokasi, dan
+gaji), menulis alasan rekomendasi (reasoning), dan menentukan kode
+warna (hijau ≥ 80%, kuning 60–79%, merah < 60%). Wizard juga
+menyiapkan progress indicatorpalsu yang berjalan bertahap: “Scrap-
+ing selesai → Analisis selesai → Ranking selesai”.
+Output sistem
+(simulasi)
+Dashboard Rekomendasi (Gambar 3) menampilkan: (1) ringkasan
+“Dari 200 lowongan dipindai, 15 cocok dengan profil Anda”, (2)
+kartu-kartu lowongan dengan skor kecocokan dan kode warna, (3)
+tombol “Mengapa lowongan ini muncul?” pada setiap kartu, dan (4)
+mekanisme feedback (Thumbs Up/Down, Catatan).
+Kondisi error Jika preferensi terlalu ketat sehingga tidak ada lowongan cocok, Wiz-
+ard menampilkan: “ Tidak ditemukan lowongan yang cocok dengan
+semua kriteria. Coba perluas filter lokasi atau tambahkan tech stack
+alternatif.” Jika terdeteksi lowongan mencurigakan (ghost job), Wiz-
+ard menandai dengan label peringatan: “ Perlu verifikasi: lowongan
+ini mungkin tidak lagi aktif.”
+12
+
+
+--- Page 14 ---
+4.3 Skenario 3: Feedback & Iterasi Rekomendasi
+Komponen Deskripsi
+Task pengguna Pengguna ingin memberikanfeedback terhadap rekomendasi yang di-
+terima agar sistem dapat mempelajari preferensi dan meningkatkan
+akurasi rekomendasi pada iterasi berikutnya.
+Input pengguna Pengguna memberikan feedback pada beberapa kartu lowongan: (1)
+Thumbs Up pada “Frontend Developer — PT Teknologi Maju” (skor
+92%), (2) Thumbs Down pada “Backend Developer — Korporasi
+ABC” (skor 55%) dengan catatan “Hindari perusahaan outsourcing”,
+(3) Dismiss pada “Fullstack Engineer — Startup XYZ” via tombol ×.
+Aksi wizard Wizard mencatat seluruh feedback pengguna secara manual.
+Berdasarkan pola: (a) menurunkan prioritas lowongan dari perusa-
+haan outsourcing, (b) meningkatkan bobot lowongan dengan tech
+stack React/Node.js dan model kerja Remote, (c) menghapus lowon-
+gan yang di-dismiss dari tampilan utama. Wizard menyesuaikan daf-
+tar rekomendasi untuk sesi berikutnya berdasarkan aturan sederhana
+ini.
+Output sistem
+(simulasi)
+Sistem menampilkan notifikasi: “ Berdasarkan feedback Anda, kami
+sedikit menyesuaikan prioritas rekomendasi. Anda dapat mereset ka-
+pan saja. ” (G14). Pada sesi berikutnya, dashboard menampilkan
+rekomendasi yang telah disesuaikan: lebih banyak posisi Fron-
+tend/Remote, tanpa lowongan outsourcing, dan lowongan yang di-
+dismiss dipindahkan ke tab “Dismissed”.
+Kondisi error Jika pengguna memberikan feedback yang kontradiktif (misalnya
+Thumbs Up untuk posisi Remote dan Thumbs Up untuk posisi On-
+site), Wizard menampilkan konfirmasi: “ Kami mendeteksi prefer-
+ensi yang bervariasi untuk model kerja. Apakah Anda terbuka untuk
+semua model kerja? ” Jika pengguna men- dismiss semua rekomen-
+dasi, sistem menyarankan: “Sepertinya belum ada yang cocok. Coba
+sesuaikan kriteria pencarian Anda.”
+Catatan Metodologi WoZ: Ketiga skenario di atas dirancang berdasarkan kerangka tiga
+peran Wizard (Dow, 2005). Pada tahap awal ( Controller), Wizard sepenuhnya mengendalikan
+semua respons. Seiring pengembangan, peran Wizard berevolusi menjadi Moderator (mem-
+validasi output AI parsial) dan akhirnya Supervisor (hanya memantau sistem otonom). Se-
+tiap tindakan Wizard selama sesi WoZ dicatat sebagai labeled training data yang dapat digu-
+nakan untuk melatih model AI pada iterasi berikutnya — menghubungkan WoZ dengan konsep
+Human-in-the-Loop (HitL).
+13
+
+
+--- Page 15 ---
+Contribution Log
+Anggota Kontribusi Spesifik %
+Bryan Herdianto
+(2306210885)
+Section 1 (Lo-Fi Prototype): wire-
+frame keempat layar utama (Onboard-
+ing, Pengaturan Preferensi, Dashboard
+Rekomendasi, Detail Lowongan), penje-
+lasan fungsi setiap layar dan koneksi teori
+Direct Manipulation (Hutchins, 1985)
+serta Scaffolding (Zamfirescu, 2023)
+25%
+Rowen Rodotua Harahap
+(2306250604)
+Section 2 (Interaction Flow): perancan-
+gan diagram alur interaksi pengguna–AI–
+sistem menggunakan TikZ, penjelasan 5
+fase interaksi (Onboarding, Ekstraksi &
+Preferensi, Rekomendasi, Detail & Kepu-
+tusan, Feedback & Iterasi), catatan desain
+human-in-the-loop
+25%
+Alexander Christhian
+(2306267025)
+Section 3 (AI Guidelines Checklist):
+evaluasi dan pemetaan 18 Guidelines
+Human-AI Interaction (Amershi et al.,
+2019) ke fitur-fitur spesifik JobIQ pada
+tiga fase (Initially, During Interaction,
+Over Time)
+25%
+Muhammad Riyan Satrio
+Wibowo
+(2306229323)
+Section 4 (Wizard of Oz Script):
+penulisan 3 skenario WoZ (Unggah CV ,
+Rekomendasi Lowongan, Feedback & It-
+erasi) beserta kondisi error; Contribution
+Log; review dan integrasi keseluruhan
+dokumen
+25%
+Total 100%
+14

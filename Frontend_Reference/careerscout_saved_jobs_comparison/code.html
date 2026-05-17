@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JobIQ Saved Jobs Comparison</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8b5cf6","secondary": "#3b82f6","background-dark": "#0f0518","glass-border": "rgba(255, 255, 255, 0.1)",
+                        "glass-surface": "rgba(30, 20, 50, 0.4)",
+                        "glass-highlight": "rgba(255, 255, 255, 0.05)",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                        'purple-glow': 'radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.15), transparent 70%)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .glass-panel {
+            background: rgba(30, 27, 46, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+        }
+        .glass-table-row {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .glass-table-row:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .text-glow {
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-slate-100 font-display min-h-screen flex flex-col overflow-x-hidden relative selection:bg-primary/30 selection:text-white">
+<div class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
+<div class="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-glass-border bg-[#0f0518]/80 backdrop-blur-xl px-6 lg:px-10 py-4 shadow-lg shadow-black/20">
+<div class="flex items-center gap-8 z-10">
+<div class="flex items-center gap-4 text-white">
+<div class="size-8 text-primary drop-shadow-[0_0_8px_rgba(139,92,246,0.6)]">
+<svg class="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="url(#logo-gradient)" fill-rule="evenodd"></path>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="logo-gradient" x1="0" x2="48" y1="0" y2="48">
+<stop stop-color="#8b5cf6"></stop>
+<stop offset="1" stop-color="#3b82f6"></stop>
+</linearGradient>
+</defs>
+</svg>
+</div>
+<h2 class="text-xl font-bold leading-tight tracking-[-0.015em] bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">JobIQ</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-slate-400 hover:text-white hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.5)] text-sm font-medium leading-normal transition-all" href="#">Dashboard</a>
+<a class="text-slate-400 hover:text-white hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.5)] text-sm font-medium leading-normal transition-all" href="#">Discover</a>
+<a class="text-white text-sm font-bold leading-normal relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-gradient-to-r after:from-primary after:to-secondary after:shadow-[0_0_10px_rgba(139,92,246,0.5)]" href="#">Saved Jobs</a>
+<a class="text-slate-400 hover:text-white hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.5)] text-sm font-medium leading-normal transition-all" href="#">Applications</a>
+<a class="text-slate-400 hover:text-white hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.5)] text-sm font-medium leading-normal transition-all" href="#">Profile</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center z-10">
+<label class="hidden lg:flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-white/5 hover:bg-white/10 focus-within:ring-1 focus-within:ring-primary/50 focus-within:bg-white/10 transition-all border border-glass-border">
+<div class="text-slate-400 flex border-none items-center justify-center pl-4 rounded-l-lg">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg bg-transparent text-white border-none focus:ring-0 placeholder:text-slate-500 px-3 text-sm font-normal leading-normal" placeholder="Search jobs..."/>
+</div>
+</label>
+<div class="relative">
+<button class="flex items-center gap-2">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-glass-border ring-2 ring-transparent hover:ring-primary/40 transition-all shadow-[0_0_15px_rgba(0,0,0,0.3)]" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAmwWnUdVy4UmiBZnUzcSMOOLQZwuLPAkDY32zXnDy0bVzEp3cX-xAd60dfb51x2vWJZUvRbF9qLQyf7JJPTcJouUlpQuoHZvIoV3uB7FFcNi5u_u9IY-Avsoy47Qme0yfBgQT0eEWRW5VociSowaqnpgXkKeOh1PeXUIu93dvJHEunro_NmkTAg0m4kH_BUHc_QUEoHHIN_1Wr7SZ6M8-1nxfsvMl_Hv7cCkxqcNY_urTegSKaoNql0AYMAXQwTTOzgPllaf2SRA");'></div>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1 w-full max-w-[1440px] mx-auto px-6 lg:px-10 py-10 relative z-10">
+<div class="flex flex-wrap items-end justify-between gap-6 mb-10">
+<div class="flex min-w-72 flex-col gap-2">
+<h1 class="text-white text-4xl md:text-5xl font-black leading-tight tracking-[-0.033em] drop-shadow-xl">Saved Jobs</h1>
+<p class="text-slate-400 text-lg font-normal max-w-xl">Manage your shortlisted opportunities and find your best fit.</p>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-sm font-medium text-slate-400">Sort by:</span>
+<select class="bg-[#1e1b2e]/80 backdrop-blur-md border border-glass-border text-white text-sm rounded-lg focus:ring-primary focus:border-primary block p-2.5 shadow-lg">
+<option selected="">Match Score (High to Low)</option>
+<option>Date Saved</option>
+<option>Salary (High to Low)</option>
+</select>
+<button class="flex items-center justify-center rounded-lg h-10 px-4 bg-white/5 border border-glass-border hover:bg-white/10 text-white text-sm font-bold transition-all gap-2 shadow-lg backdrop-blur-sm">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+<span class="hidden sm:inline">Filters</span>
+</button>
+</div>
+</div>
+<div class="mb-10 p-1 rounded-xl bg-gradient-to-r from-primary/30 to-secondary/30 shadow-[0_0_40px_-10px_rgba(139,92,246,0.2)]">
+<div class="p-6 rounded-[10px] bg-[#130d21]/90 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 h-full w-full">
+<div class="flex gap-5 items-center">
+<div class="hidden sm:flex items-center justify-center size-14 rounded-full bg-gradient-to-br from-primary to-secondary text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[28px]">compare_arrows</span>
+</div>
+<div>
+<h3 class="text-white text-xl font-bold mb-1">Compare Jobs</h3>
+<p class="text-slate-400 text-sm max-w-2xl">Select up to 3 jobs to see a detailed side-by-side comparison of benefits, culture, and match score.</p>
+</div>
+</div>
+<button class="whitespace-nowrap flex items-center justify-center rounded-lg h-11 px-8 bg-gradient-to-r from-primary to-secondary hover:brightness-110 text-white text-sm font-bold transition-all shadow-[0_0_20px_rgba(139,92,246,0.4)] border border-white/10">
+                Start Comparison
+            </button>
+</div>
+</div>
+<div class="mb-14 overflow-hidden rounded-2xl border border-glass-border glass-panel">
+<div class="bg-white/5 px-6 py-5 border-b border-glass-border flex justify-between items-center backdrop-blur-sm">
+<h3 class="font-bold text-white text-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">splitscreen</span>
+                Active Comparison
+            </h3>
+<button class="text-slate-400 hover:text-white hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.8)] text-sm font-medium transition-all">Close Comparison</button>
+</div>
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr>
+<th class="p-6 w-1/4 border-r border-glass-border bg-white/5 sticky left-0 z-20 backdrop-blur-xl">
+<span class="text-xs uppercase tracking-wider font-bold text-slate-400">Features</span>
+</th>
+<th class="p-6 w-1/4 border-r border-glass-border bg-transparent min-w-[240px]">
+<div class="flex items-center gap-4 mb-2">
+<div class="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 p-3 rounded-xl backdrop-blur-sm shadow-inner">
+<img alt="TechFlow Logo" class="w-8 h-8 object-contain drop-shadow-md" data-alt="Company logo TechFlow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTN6z45ZuT-M2jGbfzCQoKkoTguGD5QJbmk1yhwhfw5_YQtNMdBf0aujqax0IKuffverRqnsSvuT5Ydl3x4kHN9ie2L7EsnMOeOwJAMq8pF5Wfd22mGk9QhmdT8KvcTa7IGkdaV1KzwnLN5epmdxUwbaNzjPGJsAOySZer5cr1O6sBYY3HKJEoa_3focHOU8vHZDaKQLbPWcZWR2TPkfnvj8FXx2CCrzTSq--GfvP3EEsBx4-ctthTW6nkX2nRi0Lv9Iou8SU0bw"/>
+</div>
+<div>
+<div class="font-bold text-white text-lg">Senior UX Designer</div>
+<div class="text-xs text-slate-400">TechFlow</div>
+</div>
+</div>
+</th>
+<th class="p-6 w-1/4 border-r border-glass-border bg-transparent min-w-[240px]">
+<div class="flex items-center gap-4 mb-2">
+<div class="bg-gradient-to-br from-green-500/20 to-teal-500/20 border border-white/10 p-3 rounded-xl backdrop-blur-sm shadow-inner">
+<img alt="GreenScale Logo" class="w-8 h-8 object-contain drop-shadow-md" data-alt="Company logo GreenScale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzzJVzCdCoIhDX3AIhYLLeWWz6B5vHqaI01KdpO2THkSjKFbRE2vL7FcIVZAKXO26pEGPoweVuamnQunGNaA8kd2GFLMi5oMPCteU13XL__gVSzsewvIQsaQfkkZcbWRFp_hm21N4ov-NYwK75cQxt3p3ShhAN-tcWwP_dmZ1kjBTKTeLe0Nsp1wmWro8KmTRUuOPRbw2j7DgpgoUmBt-mBdgcCAsKEnI6ghsL7kSNmScY1KWQqszrBwqKiqpDVnQRqt4jgHR9kg"/>
+</div>
+<div>
+<div class="font-bold text-white text-lg">Product Designer</div>
+<div class="text-xs text-slate-400">GreenScale</div>
+</div>
+</div>
+</th>
+<th class="p-6 w-1/4 min-w-[240px] bg-white/[0.02]">
+<div class="h-full flex flex-col items-center justify-center text-center gap-3 text-slate-500 py-4 hover:text-primary transition-all cursor-pointer group">
+<div class="size-12 rounded-full border-2 border-dashed border-slate-600 group-hover:border-primary flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[24px]">add</span>
+</div>
+<span class="text-sm font-medium">Add Job</span>
+</div>
+</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5 text-sm">
+<tr class="glass-table-row transition-colors hover:bg-white/10">
+<td class="p-6 font-semibold text-slate-300 sticky left-0 bg-[#161226]/95 backdrop-blur-xl z-10 border-r border-glass-border shadow-[4px_0_24px_-2px_rgba(0,0,0,0.5)]">AI Match Score</td>
+<td class="p-6 border-r border-glass-border relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-center gap-2 relative z-10">
+<span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-primary to-secondary text-white shadow-[0_0_15px_rgba(139,92,246,0.5)] border border-white/20">
+                                98% Match
+                            </span>
+</div>
+</td>
+<td class="p-6 border-r border-glass-border relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-center gap-2 relative z-10">
+<span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-primary/80 to-secondary/80 text-white/90 shadow-[0_0_10px_rgba(139,92,246,0.3)] border border-white/10">
+                                85% Match
+                            </span>
+</div>
+</td>
+<td class="p-6 bg-white/[0.02]"></td>
+</tr>
+<tr class="glass-table-row transition-colors hover:bg-white/10">
+<td class="p-6 font-semibold text-slate-300 sticky left-0 bg-[#1e1930]/95 backdrop-blur-xl z-10 border-r border-glass-border shadow-[4px_0_24px_-2px_rgba(0,0,0,0.5)]">Salary Range</td>
+<td class="p-6 border-r border-glass-border text-white font-medium text-base">$140k - $160k</td>
+<td class="p-6 border-r border-glass-border text-white font-medium text-base">$130k - $150k</td>
+<td class="p-6 bg-white/[0.02]"></td>
+</tr>
+<tr class="glass-table-row transition-colors hover:bg-white/10">
+<td class="p-6 font-semibold text-slate-300 sticky left-0 bg-[#161226]/95 backdrop-blur-xl z-10 border-r border-glass-border shadow-[4px_0_24px_-2px_rgba(0,0,0,0.5)]">Commute</td>
+<td class="p-6 border-r border-glass-border text-slate-200">On-site (SF) • 25m</td>
+<td class="p-6 border-r border-glass-border text-slate-200">Remote</td>
+<td class="p-6 bg-white/[0.02]"></td>
+</tr>
+<tr class="glass-table-row transition-colors hover:bg-white/10">
+<td class="p-6 font-semibold text-slate-300 sticky left-0 bg-[#1e1930]/95 backdrop-blur-xl z-10 border-r border-glass-border shadow-[4px_0_24px_-2px_rgba(0,0,0,0.5)]">Culture Rating</td>
+<td class="p-6 border-r border-glass-border">
+<div class="flex items-center text-yellow-400 gap-1 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]">
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] text-white/20">star</span>
+<span class="ml-2 text-white font-bold text-sm">4.2</span>
+</div>
+</td>
+<td class="p-6 border-r border-glass-border">
+<div class="flex items-center text-yellow-400 gap-1 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]">
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star_half</span>
+<span class="ml-2 text-white font-bold text-sm">4.8</span>
+</div>
+</td>
+<td class="p-6 bg-white/[0.02]"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<article class="group relative flex flex-col rounded-2xl glass-card overflow-hidden hover:shadow-[0_0_40px_rgba(139,92,246,0.3)] transition-all duration-300 hover:border-primary/50">
+<div class="absolute top-4 right-4 z-10">
+<input class="w-5 h-5 rounded border-slate-500 bg-slate-800 text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer" title="Select to compare" type="checkbox"/>
+</div>
+<div class="h-36 relative">
+<div class="w-full h-full bg-cover bg-center opacity-70 group-hover:opacity-100 transition-opacity" data-alt="Abstract blue tech pattern for job background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBFfeyrZFWFby6WjjAZvyqN-9uWBy95cqpvu6AeNI6BLR8GEqJ83GUh-njqFAROttxNrynYeuK_w4N_NQ9opQT7LI_GCBTsABbBoin0Crn5oS23QVJ-ZN88zKtQIBlSEAOaHlq9WZUl2TA01l61oZOXJ_Fb6wniNWSSJ6MLVbgrwevuPuRFf73CS3ClJqPMXhCQqTZXqynvdizDrOAS-we6xX-epEfPkv1S6m9X-VLF-Orc1UlwNWPEM7sH6xdO_5hG1IdKefL3CQ");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#151025] to-transparent"></div>
+<div class="absolute -bottom-8 left-6">
+<div class="size-16 rounded-xl glass-panel p-2 shadow-lg flex items-center justify-center backdrop-blur-2xl border border-white/20">
+<img alt="TechFlow Logo" class="w-10 h-10 object-contain drop-shadow-md" data-alt="TechFlow Company Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrEGun2XPcNNEZ-GZ4peO5vHyTIK_KRLiqn_wkuNrBKiyD43uAQkc07LZWhXyXr9aSC4j2b1y_7v37jFFiWp96ig3GI4scZstu_wQNbaYnpb0SP5XTVMAGRLZC7hIXj2rwOZUb4B4AONPvdBj5mxFKPHHAJPuk12xUj5godb1OtpKZo3FiVPs0_DovRlWzusBNnsOfSPZFjR0q0-2n14k14WD_50pFQW8KJmK1LfNR7TQxVwI0UOzB45FyzAOdnQjEGsg2NyMNEg"/>
+</div>
+</div>
+</div>
+<div class="p-6 pt-10 flex-1 flex flex-col">
+<div class="flex items-start justify-between mb-3">
+<div>
+<h3 class="text-xl font-bold text-white leading-tight group-hover:text-primary transition-colors text-shadow-sm">Senior UX Designer</h3>
+<p class="text-sm font-medium text-slate-400 mt-1">TechFlow</p>
+</div>
+<div class="flex items-center gap-1 text-white bg-gradient-to-r from-primary to-secondary px-3 py-1 rounded-full text-xs font-bold shadow-[0_0_12px_rgba(59,130,246,0.5)] border border-white/20">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                        98%
+                    </div>
+</div>
+<div class="flex flex-wrap gap-y-2 gap-x-4 text-sm text-slate-300 mb-6 mt-2">
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">location_on</span> San Francisco</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">payments</span> $140k - $160k</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">schedule</span> Full-time</span>
+</div>
+<div class="mt-auto pt-5 border-t border-white/10">
+<label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">edit_note</span>
+                        My Note
+                    </label>
+<div class="relative group/note">
+<textarea class="w-full text-sm bg-black/20 border-white/5 border rounded-lg p-3 text-slate-200 resize-none focus:ring-1 focus:ring-primary/50 focus:bg-black/40 focus:border-primary/30 placeholder:text-slate-500 transition-all shadow-inner" placeholder="Add a note..." rows="2">Great benefits package and close to gym.</textarea>
+<button class="absolute bottom-2 right-2 p-1 text-slate-400 hover:text-primary opacity-0 group-hover/note:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">save</span>
+</button>
+</div>
+</div>
+<div class="mt-5 flex gap-3">
+<button class="flex-1 h-10 rounded-lg bg-white/10 text-white text-sm font-bold hover:bg-primary hover:shadow-[0_0_15px_rgba(139,92,246,0.5)] transition-all border border-white/5">Apply Now</button>
+<button class="size-10 flex items-center justify-center rounded-lg bg-white/5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+</article>
+<article class="group relative flex flex-col rounded-2xl glass-card overflow-hidden hover:shadow-[0_0_40px_rgba(139,92,246,0.3)] transition-all duration-300 hover:border-primary/50 border border-primary/30 shadow-[0_0_15px_rgba(139,92,246,0.1)]">
+<div class="absolute top-4 right-4 z-10">
+<input checked="" class="w-5 h-5 rounded border-slate-500 bg-slate-800 text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer" title="Selected for comparison" type="checkbox"/>
+</div>
+<div class="h-36 relative">
+<div class="w-full h-full bg-cover bg-center opacity-70 group-hover:opacity-100 transition-opacity" data-alt="Abstract green organic pattern for job background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBQvv41W1AdFjHc4WgJpOFGXCn75PiBoS1kBRZwZpK30m2gkCq-hK0xal3MvyKjA_COg8sJq8yvfbqFQwAmS6Fjqb_v8rZWROOB4FZPmt4o27le2sfj4EHSGpZZQO7f_4VE6tRmV8Uib4byeI-zoFhjkPvG5Etr2-MTFf4izjlRNsAlTetsi7WWrAKJqImU03_G9SGK6lPry8Sa56j5H0LuYsxpJYzFW48zmFDHkN_UFdmtijTi4vReoB1IpE14pLlkaVmwPI7X1g");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#151025] to-transparent"></div>
+<div class="absolute -bottom-8 left-6">
+<div class="size-16 rounded-xl glass-panel p-2 shadow-lg flex items-center justify-center backdrop-blur-2xl border border-white/20">
+<img alt="GreenScale Logo" class="w-10 h-10 object-contain drop-shadow-md" data-alt="GreenScale Company Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNUjjYWLNDFCOvTRFCQKqhqx9IRUx4qmDvkLYrgEv7JQs7h_CQsvW74CF6EGU9vGycMdy5pTU_BsqJGdvlyJjBft0xUwcX8cyLwM7q63VZz0FmK_t5AXXDIwTngHAPxXLoTLx8kuzOMcHoiHE-_SNVUTAsBzSbvOTEs5wDAOPuxnGsx70lsRSSYRWj6hEME4OYwGGY7gF_uPSHQa4NwHcGe8_kpEcTJqeTO3-mmxkdeofPL2Epgez9RcB7OVysV0XvgRYkR7dNBA"/>
+</div>
+</div>
+</div>
+<div class="p-6 pt-10 flex-1 flex flex-col">
+<div class="flex items-start justify-between mb-3">
+<div>
+<h3 class="text-xl font-bold text-white leading-tight group-hover:text-primary transition-colors text-shadow-sm">Product Designer</h3>
+<p class="text-sm font-medium text-slate-400 mt-1">GreenScale</p>
+</div>
+<div class="flex items-center gap-1 text-white bg-gradient-to-r from-primary/80 to-secondary/80 px-3 py-1 rounded-full text-xs font-bold shadow-[0_0_12px_rgba(59,130,246,0.3)] border border-white/20">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                        85%
+                    </div>
+</div>
+<div class="flex flex-wrap gap-y-2 gap-x-4 text-sm text-slate-300 mb-6 mt-2">
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">public</span> Remote</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">payments</span> $130k - $150k</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">schedule</span> Full-time</span>
+</div>
+<div class="mt-auto pt-5 border-t border-white/10">
+<label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">edit_note</span>
+                        My Note
+                    </label>
+<div class="relative group/note">
+<textarea class="w-full text-sm bg-black/20 border-white/5 border rounded-lg p-3 text-slate-200 resize-none focus:ring-1 focus:ring-primary/50 focus:bg-black/40 focus:border-primary/30 placeholder:text-slate-500 transition-all shadow-inner" placeholder="Add a note..." rows="2">Really like their sustainability mission.</textarea>
+<button class="absolute bottom-2 right-2 p-1 text-slate-400 hover:text-primary opacity-0 group-hover/note:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">save</span>
+</button>
+</div>
+</div>
+<div class="mt-5 flex gap-3">
+<button class="flex-1 h-10 rounded-lg bg-white/10 text-white text-sm font-bold hover:bg-primary hover:shadow-[0_0_15px_rgba(139,92,246,0.5)] transition-all border border-white/5">Apply Now</button>
+<button class="size-10 flex items-center justify-center rounded-lg bg-white/5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+</article>
+<article class="group relative flex flex-col rounded-2xl glass-card overflow-hidden hover:shadow-[0_0_40px_rgba(139,92,246,0.3)] transition-all duration-300 hover:border-primary/50 opacity-80 hover:opacity-100">
+<div class="absolute top-0 right-0 left-0 bg-gradient-to-r from-amber-700/80 to-amber-900/80 backdrop-blur-md text-amber-100 text-xs font-bold px-4 py-1.5 text-center z-20 border-b border-white/10">
+                Application Closing Soon
+            </div>
+<div class="absolute top-8 right-4 z-10">
+<input class="w-5 h-5 rounded border-slate-500 bg-slate-800 text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer" title="Select to compare" type="checkbox"/>
+</div>
+<div class="h-36 relative">
+<div class="w-full h-full bg-cover bg-center opacity-70 group-hover:opacity-100 transition-opacity" data-alt="Abstract indigo geometric pattern for job background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAq1mKlOaEB5o4rVmkSVkbqK8XIxJmkbyQmUIQS1Mi6tnn3_HiRIS-IzWv4PXfhK19XV-90OoMJ6TiEGYkbihUj3QMLo5KIOJSIGZyer-Hfqkc9ud6BK5bXzRzGnCKZ9mcn3nQ1CrQXX8LXcLxgFYgXqLwv7ZPGe_OEsqgJQHqCggOFAcqklh3rC0PVJ4PfgiIe1RmsGz44n5ek_Aw3Er0b4XQwo11sELhTSXnBBrMDUrzcDTmjNMMUInx5e6CMQSqD2FN1opmpeg");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#151025] to-transparent"></div>
+<div class="absolute -bottom-8 left-6">
+<div class="size-16 rounded-xl glass-panel p-2 shadow-lg flex items-center justify-center backdrop-blur-2xl border border-white/20">
+<img alt="Nebula Logo" class="w-10 h-10 object-contain drop-shadow-md" data-alt="Nebula Systems Company Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8md7-lpfNGuKhFnvoTT8DcJ3CdwlNpexRsldJlTkymhLDb264lyVqeVq6otHlHX_eoUU2fTHNHehX9jcrMTR0E9dxDHsOdzTt0v8_a6jIdlaJgIn5eS3v6wIHf02NDhoE1p3RHhvX0H-WY1bP5i4WZ-yzXVnsZewad51LYUsZOiOTBTaTJ7PF1e10oHxyaRIXj2H2IOpy5k_0UB25S6xH_Oe4OiHhkBPbH1URUu7RqXJxzvmdu1PBnm9LKRKbq3pgu_f5asPHzA"/>
+</div>
+</div>
+</div>
+<div class="p-6 pt-10 flex-1 flex flex-col">
+<div class="flex items-start justify-between mb-3">
+<div>
+<h3 class="text-xl font-bold text-white leading-tight group-hover:text-primary transition-colors text-shadow-sm">Lead Frontend Engineer</h3>
+<p class="text-sm font-medium text-slate-400 mt-1">Nebula Systems</p>
+</div>
+<div class="flex items-center gap-1 text-white bg-white/10 px-3 py-1 rounded-full text-xs font-bold border border-white/10">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                        72%
+                    </div>
+</div>
+<div class="flex flex-wrap gap-y-2 gap-x-4 text-sm text-slate-300 mb-6 mt-2">
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">location_on</span> New York</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">payments</span> $160k - $190k</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">schedule</span> Hybrid</span>
+</div>
+<div class="mt-auto pt-5 border-t border-white/10">
+<label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">edit_note</span>
+                        My Note
+                    </label>
+<div class="relative group/note">
+<textarea class="w-full text-sm bg-black/20 border-white/5 border rounded-lg p-3 text-slate-200 resize-none focus:ring-1 focus:ring-primary/50 focus:bg-black/40 focus:border-primary/30 placeholder:text-slate-500 transition-all shadow-inner" placeholder="Add a note..." rows="2"></textarea>
+<button class="absolute bottom-2 right-2 p-1 text-slate-400 hover:text-primary opacity-0 group-hover/note:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">save</span>
+</button>
+</div>
+</div>
+<div class="mt-5 flex gap-3">
+<button class="flex-1 h-10 rounded-lg bg-white/10 text-white text-sm font-bold hover:bg-primary hover:shadow-[0_0_15px_rgba(139,92,246,0.5)] transition-all border border-white/5">Apply Now</button>
+<button class="size-10 flex items-center justify-center rounded-lg bg-white/5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+</article>
+<article class="group relative flex flex-col rounded-2xl glass-card overflow-hidden hover:shadow-[0_0_40px_rgba(139,92,246,0.3)] transition-all duration-300 hover:border-primary/50">
+<div class="absolute top-4 right-4 z-10">
+<input class="w-5 h-5 rounded border-slate-500 bg-slate-800 text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer" title="Select to compare" type="checkbox"/>
+</div>
+<div class="h-36 relative">
+<div class="w-full h-full bg-cover bg-center opacity-70 group-hover:opacity-100 transition-opacity" data-alt="Abstract orange energetic pattern for job background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAUSfqg4MSV8-56vTonRKqglbRMLmSMKyPFXZdBQ9geQTK_jksBQ-vzdc7vYNFCSrqXn6gTAMIaZhLSTsp51RlFHL0zBzl-ifTeJQML21GS7SpPPNZdb1OYfoWinXZMs3GEYaMa14oC8NZazq2pUEFWaMyEWBgcO-guzOc-RNXNcrKEbIbgK7fSPXR-n1lZ84X_BZUt3zGQUykeqYc3gLE0tv6v2MtzR6HNWZIzdH_wy8HoBK5plNlMhbxMyPtePBJ8_8PCtnesIA");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#151025] to-transparent"></div>
+<div class="absolute -bottom-8 left-6">
+<div class="size-16 rounded-xl glass-panel p-2 shadow-lg flex items-center justify-center backdrop-blur-2xl border border-white/20">
+<img alt="Solaris Logo" class="w-10 h-10 object-contain drop-shadow-md" data-alt="Solaris Tech Company Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9DrnTx84RgofiGZ5pwadjtS2lRu_rIbki8hziEXslEFLcJE-m0gk26UaBUtiCXpdmgM74Cl13IhldepxnDtyLXo7Sv3JD-KGRhMoRzkWkbMiZo3HeWnyOqYDa-HU1oHJdbSqJwPFsYvgBvdQKc8kfrESf68SVF7Fa2dQaFGMt8n5YR4S5bjOF7J2JI4R1XwAcrTLOsi9dQcm-cXqT3Pj5gkhQjAdQPOuNEjn7UNJbY0VXRK_CSHgQppnqhtQJ8KykndMEusjIqw"/>
+</div>
+</div>
+</div>
+<div class="p-6 pt-10 flex-1 flex flex-col">
+<div class="flex items-start justify-between mb-3">
+<div>
+<h3 class="text-xl font-bold text-white leading-tight group-hover:text-primary transition-colors text-shadow-sm">UX Researcher</h3>
+<p class="text-sm font-medium text-slate-400 mt-1">Solaris Tech</p>
+</div>
+<div class="flex items-center gap-1 text-white bg-white/10 px-3 py-1 rounded-full text-xs font-bold border border-white/10">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                        65%
+                    </div>
+</div>
+<div class="flex flex-wrap gap-y-2 gap-x-4 text-sm text-slate-300 mb-6 mt-2">
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">location_on</span> Austin</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">payments</span> $110k - $130k</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-slate-400">schedule</span> On-site</span>
+</div>
+<div class="mt-auto pt-5 border-t border-white/10">
+<label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">edit_note</span>
+                        My Note
+                    </label>
+<div class="relative group/note">
+<textarea class="w-full text-sm bg-black/20 border-white/5 border rounded-lg p-3 text-slate-200 resize-none focus:ring-1 focus:ring-primary/50 focus:bg-black/40 focus:border-primary/30 placeholder:text-slate-500 transition-all shadow-inner" placeholder="Add a note..." rows="2">Referral from Mike.</textarea>
+<button class="absolute bottom-2 right-2 p-1 text-slate-400 hover:text-primary opacity-0 group-hover/note:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">save</span>
+</button>
+</div>
+</div>
+<div class="mt-5 flex gap-3">
+<button class="flex-1 h-10 rounded-lg bg-white/10 text-white text-sm font-bold hover:bg-primary hover:shadow-[0_0_15px_rgba(139,92,246,0.5)] transition-all border border-white/5">Apply Now</button>
+<button class="size-10 flex items-center justify-center rounded-lg bg-white/5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+</article>
+<a class="group relative flex flex-col justify-center items-center rounded-2xl border-2 border-dashed border-white/10 hover:border-primary/50 bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-300 min-h-[400px] backdrop-blur-sm" href="#">
+<div class="flex flex-col items-center text-center p-6 gap-4">
+<div class="size-20 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/10 shadow-lg flex items-center justify-center text-primary group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(139,92,246,0.3)] transition-all duration-300 backdrop-blur-md">
+<span class="material-symbols-outlined text-[40px]">add</span>
+</div>
+<h3 class="text-xl font-bold text-white mt-2 group-hover:text-primary transition-colors">Discover More Jobs</h3>
+<p class="text-sm text-slate-400 max-w-[200px] leading-relaxed">Find more opportunities tailored to your profile.</p>
+</div>
+</a>
+</div>
+</main>
+</body></html>

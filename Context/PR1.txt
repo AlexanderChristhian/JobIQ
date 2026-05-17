@@ -1,0 +1,327 @@
+--- Page 1 ---
+Progress Report 1
+Problem Statement, User Persona, & Analisis Pilar HAI
+Jobiq: Intelligent Job Discovery Agent
+Kelompok: 7A
+1. Alexander Christhian (2306267025)
+2. Rowen Rodotua Harahap (2306250604)
+3. Bryan Herdianto (2306210885)
+4. Muhammad Riyan Satrio Wibowo (2306229323)
+Mata Kuliah: Interaksi Komputer dan Manusia
+Teknik Komputer — Universitas Indonesia
+Semester Genap 2025/2026
+
+
+--- Page 2 ---
+Contents
+1 Problem Statement 2
+2 User Persona 3
+2.1 Persona 1: Andi . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+2.2 Persona 2: Siti . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+3 Context of Use 4
+4 Analisis Pilar HAI 5
+4.1 Comprehensibility (Norman) . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+4.2 Fairness (Zanzotto) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+4.3 Augmentation (Wu et al.) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+Contribution Log 9
+1
+
+
+--- Page 3 ---
+1 Problem Statement
+Di era digital saat ini, pencarian pekerjaan seharusnya menjadi lebih mudah dengan banyaknya
+platform rekrutmen daring seperti LinkedIn, Kalibrr, Glints, JobStreet, dan Indeed. Namun pada
+kenyataannya, justru terjadi fenomenajob search fatigueyang berarti sebuah kondisi kelelahan
+mental yang dialami pencari kerja akibat proses pencarian yang panjang, berulang, dan sering
+kali tidak membuahkan hasil. Berdasarkan survei dariThe Muse(2023), lebih dari 72% pencari
+kerja mengalami kelelahan emosional selama proses pencarian kerja, terutama lulusan baru
+yang belum memiliki pengalaman memfilter informasi.
+Masalah kritis yang mendasari diperlukannya sistemJobiqadalah sebagai berikut:
+1.Informasi Berlebihan (Information Overload):Setiap harinya, ribuan lowongan baru
+dipublikasikan di berbagai platform. Pencari kerja harus memfilter lowongan ini secara
+manual, dan sering kali hasilnya tidak relevan meskipunkeyword-nya sama. Sebagai con-
+toh, pencarian dengan kata kunci “Software Engineer” dapat menghasilkan ratusan hasil
+yang mencakup posisijunior,senior,embedded,DevOps, hinggaQA. Akibatnya, peng-
+guna membuang waktu berjam-jam untuk menyortir lowongan yang sebenarnya tidak
+sesuai.
+2.Konteks yang Hilang (Missing Context):Mesin pencari lowongan saat ini bekerja
+berdasarkan pencocokankeywordsecara literal, tanpa memahami konteks lebih dalam.
+Sistem tidak mampu membedakan nuansa seperti “Budaya Kerja” (startupyang agresif vs
+korporasi yang stabil), “Tech Stack Spesifik” (misal: pengguna mencari posisi “Frontend
+Developer” murni menggunakan React, tetapi yang muncul adalah “Fullstack Developer”
+dengan bebanbackendyang berat), atau preferensi lokasi (“remote-first” vs “hybrid” vs
+“on-site”). Keterbatasan ini menyebabkanmismatchantara ekspektasi pencari kerja dan
+realita lowongan yang ditampilkan.
+3.Kebutuhan Kolaborasi Manusia–AI:Teknologi AI, khususnya kombinasiHeadless
+Browser(Selenium/Puppeteer) danLarge Language Model(LLM), memiliki kemam-
+puan luar biasa dalam mengumpulkan data dalam volume besar dan membaca/memahami
+teks deskripsi pekerjaan secara cepat. Namun, AI tidak memiliki intuisi tentang prefer-
+ensi personal yang sifatnya subjektif, sepertivibeperusahaan, kenyamanan lingkungan
+kerja, atau kesesuaian dengan rencana hidup jangka panjang pengguna. Oleh karena
+itu, dibutuhkan model kolaborasi di manaAI bertugas sebagaiscout(pengintai yang
+mengumpulkan dan menyaring data) danmanusia bertugas sebagaidecision maker
+(pengambil keputusan akhir berdasarkan preferensi dan konteks personal). Pendekatan
+ini mencerminkan prinsipHuman-AI Interactiondi mana kedua pihak saling melengkapi
+kekurangan masing-masing.
+2
+
+
+--- Page 4 ---
+2 User Persona
+2.1 Persona 1: Andi
+Nama & Usia Andi, 22 Tahun
+Pekerjaan Lulusan baru S1 Teknik Komputer dari universitas di Ja-
+bodetabek (Fresh Graduate). Belum memiliki pengalaman
+kerja formal selain magang satu semester.
+Goals Mendapatkan pekerjaan pertama secepatnya, idealnya di
+bidangsoftware development. Tidak terlalu memilih posisi
+spesifik. Hal yang penting adalah bisa mulai membangun
+pengalaman dan menjadi mandiri secara finansial. Target:
+mendapat panggilan interview dalam 1–2 bulan.
+Pain Points (1) Bingung membedakan lowongan asli vs penipuan/ghost
+jobs. Banyak sekali iklan lowongan yang ternyata sudah
+ditutup atau hanya meminta pengumpulan data CV . (2)
+LelahscrollingLinkedIn dan Glints seharian tanpa mene-
+mukan lowongan yang benar-benar cocok. (3) Merasaover-
+whelmeddengan banyaknya variasi posisi yang terdengar
+serupa (Software EngineervsWeb DevelopervsIT Sup-
+port).
+Context of Use Menggunakan laptop pribadi di kamar kos atau perpus-
+takaan kampus. Browsing lowongan hampir setiap hari,
+terutama pagi hari setelah bangun tidur. Juga mengecek no-
+tifikasi lowongan darismartphonesaat di perjalanan.
+AI Literacy Memiliki nilai rendah sehingga menganggap AI itu “magic”
+yang selalu memberikan jawaban benar. Tidak mema-
+hami bahwa AI bekerja berdasarkan pola data dan bisa
+menghasilkanfalse positive(merekomendasikan lowongan
+yang sebenarnya tidak cocok) maupunfalse negative(mele-
+watkan lowongan yang sebenarnya bagus).
+Trust Level Memiliki sikapOver-Trustsehingga cenderung menerima
+semua rekomendasi AI tanpa verifikasi. Akan langsung
+melamar ke semua link yang disarankan tanpa mengecek
+detail perusahaan,reviewkaryawan, atau keaslian lowon-
+gan. Perlu dibantu dengan mekanisme peringatan agar tidak
+terjebak lowongan palsu.
+3
+
+
+--- Page 5 ---
+2.2 Persona 2: Siti
+Nama & Usia Siti, 30 Tahun
+Pekerjaan Senior Backend Engineer di sebuah perusahaanfintechdi
+Jakarta. Memiliki pengalaman 7+ tahun dengan spesialisasi
+di Go, Python, dan arsitekturmicroservices.
+Goals Mencari lompatan karir yang sangat spesifik: gaji di atas 30
+juta/bulan, kebijakan WFHfull-remote, perusahaan dengan
+budayaengineering-driven(bukansales-driven), dan posisi
+yang memungkinkan kontribusi keopen-sourceatau riset
+teknis.
+Pain Points (1) Terlalu banyak spam rekruter di LinkedIn yang
+menawarkan posisimid-levelatau bahkanjunioryang tidak
+sesuai senioritas. (2) Filter bawaan LinkedIn dan Kalibrr
+kurang spesifik sehingga tidak bisa memfilter berdasarkan
+tech stack, budaya kerja, atau model kerja secara akurat.
+(3) Banyak deskripsi pekerjaan yang ambigu atau menipu
+(misalnya tertulis “remote” tetapi ternyata wajib ke kantor
+3 hari/minggu).
+Context of Use Menggunakan desktop setup (layar ganda) dihome office.
+Mengecek lowongan secara berkala 2–3 kali seminggu di
+waktu luang setelah jam kerja. Lebih suka melihat data
+dalam bentuk ringkasan terstruktur daripada harus mem-
+buka satu per satu halaman lowongan.
+AI Literacy Memiliki nilai inggi sehingga memahami cara kerjaweb
+scraping, keterbatasan NLP, serta konsephallucination
+pada LLM. Mengerti bahwa hasil AI perlu divalidasi dan
+tidak selalu akurat. Mampu memberikanfeedbackteknis
+yang spesifik untuk meningkatkan kualitas rekomendasi.
+Trust Level Memiliki sikap Skeptis (Under-Trust) sehingga sering ragu
+apakah AI benar-benar bisa memfilternuancekualitatif
+seperti “keseimbangan kerja-hidup”, “budaya tim yang ko-
+laboratif”, atau “perusahaan yang tidak seringlayoff”.
+Akan selalu melakukan verifikasi manual dan cenderung
+mematikan fitur otomatis yang tidak bisa dijelaskan alasan-
+nya.
+3 Context of Use
+Bagian ini menjelaskan konteks lingkungan, perangkat, dan kondisi pengguna saat berinteraksi
+dengan sistem Jobiq.
+•Lingkungan Fisik:Jobiq dirancang untuk digunakan di lingkungan pribadi pengguna,
+seperti rumah, kamar kos,home office, ataucoffee shop. Pengguna umumnya sedang
+dalam kondisi fokus menyusun strategi karir, sehingga membutuhkan tampilan yang bersih,
+terstruktur, dan minim distraksi. Sistem tidak dirancang untuk penggunaan di perangkat
+4
+
+
+--- Page 6 ---
+publik (misalnya komputer perpustakaan) karena menyimpan data sensitif seperti CV dan
+preferensi gaji.
+•Perangkat:Sistem berupaweb-based application(Dashboard) yang berjalan dibrowser
+desktop modern (Chrome, Firefox, atau Edge). Tampilan utama berupa dashboard dengan
+panel navigasi, daftar rekomendasi lowongan, dan area detail lowongan. Untuk versi
+awal, fokus pengembangan pada pengalaman desktop karena proses analisis lowongan
+membutuhkan layar yang cukup lebar. Notifikasi ringkas dapat dikirim kesmartphone
+melalui email ataupush notificationsebagai pelengkap.
+•Frekuensi Penggunaan:Pengguna diharapkan mengakses sistem secara berkala, bukan
+terus-menerus. Pola penggunaan tipikal adalah: (1) pagi hari sekitar jam 7–9 saatbatch
+lowongan baru muncul di berbagai platform, (2) malam hari saat pengguna memiliki
+waktu luang untuk me-reviewrekomendasi. Sistem menjalankan prosesscrapingdi latar
+belakang secara terjadwal dan menyajikan hasilnya saat pengguna membuka dashboard.
+•Kondisi Emosional Pengguna:Konteks emosional sangat penting dalam desain sistem
+ini. Pencari kerja sering menggunakan sistem dalam kondisi stres, cemas, atau frustrasi.
+Oleh karena itu, desain antarmuka perlu mempertimbangkan aspekemotional design:
+menggunakan bahasa yang suportif, menghindari angka atau statistik yang bisa membuat
+pengguna merasa tidak memadai, dan memberikan dorongan positif (misal: “Hari ini ada
+5 lowongan baru yang cocok dengan profilmu!”).
+•Konteks Sosial:Pencarian kerja umumnya dilakukan secara individual dan bersifat pri-
+vat. Pengguna tidak ingin orang lain (terutama rekan kerja atau atasan saat ini) menge-
+tahui bahwa mereka sedang aktif mencari pekerjaan baru. Sistem harus menjaga privasi
+pengguna dan tidak memerlukan integrasi akun media sosial yang bersifat publik.
+4 Analisis Pilar HAI
+4.1 Comprehensibility (Norman)
+Menurut kerangka teori Donald Norman,comprehensibilitytercapai ketikamental modelpeng-
+guna selaras denganconceptual modelyang dirancang oleh pengembang. Penghubung kedu-
+anya adalahsystem image, yaitu tampilan, perilaku, dan dokumentasi sistem yang bisa diamati
+langsung oleh pengguna.
+Mental Model & System Image
+Agar pengguna membentukmental modelyang benar, sistem Jobiq tidak boleh terlihat se-
+bagai “Black Box” yang secara misterius mengeluarkan rekomendasi. Pengguna harus dapat
+memahamiapa yang sedang dilakukan sistem,mengapa suatu lowongan direkomendasikan,
+danapa batasan sistem.
+•Transparansi Proses (System Image):Dashboard menampilkan statuslivedariheadless
+browsersecara real-time melaluiprogress indicator. Pengguna dapat melihat langkah-
+langkah yang sedang dikerjakan:
+“[1/4] Membuka LinkedIn Jobs. . . [2/4] Membaca 50 deskripsi lowongan. . . [3/4] Men-
+yaring berdasarkan preferensi Anda. . . [4/4] Menyusun peringkat. . . ”
+Dengan menampilkan proses secara eksplisit, pengguna memahami bahwa sistem bekerja
+secara bertahap dan tidak instan sehingga ekspektasi mereka lebih realistis.
+5
+
+
+--- Page 7 ---
+•Penjelasan Rekomendasi (Match Reasoning):Setiap lowongan yang direkomendasikan
+dilengkapi dengan penjelasan mengapa lowongan tersebut ditampilkan. Sistem menggu-
+nakan indikator visual berupa kode warna dan skor kecocokan:
+Contoh:“Lowongan ini cocok 85% dengan profil Anda karena membutuhkan React dan
+Node.js (sesuai tech stack Anda). Ditandai KUNING karena lokasi ‘On-site Jakarta’
+sedangkan preferensi Anda ‘Hybrid’. Ditandai HIJAU untuk gaji yang berada dalam
+rentang yang Anda tentukan. ”
+Penjelasan ini membantu pengguna memahami bahwa sistem tidak sempurna dan men-
+dorong mereka untuk tetap melakukan evaluasi mandiri.
+•AffordancedanSignifier:Elemen interaktif pada dashboard dirancang dengan prinsip
+Norman. Tombol “Thumbs Up/Down” memilikiaffordanceyang jelas untuk memberikan
+feedback. Label “Mengapa lowongan ini muncul?” berfungsi sebagaisignifieryang
+mengundang pengguna untuk mengeksplorasi penjelasan lebih lanjut.
+•PenangananGulf of Evaluation:Sistem menyediakan ringkasan hasil pencarian (misal:
+“Dari 200 lowongan yang dipindai, 15 cocok dengan profil Anda, 3 ditandai perlu perha-
+tian khusus”) sehingga pengguna dapat dengan cepat mengevaluasi apakah hasil sistem
+sesuai harapan mereka.
+4.2 Fairness (Zanzotto)
+Menurut kerangka Zanzotto,fairnessdalam sistem AI berkaitan dengan siapa yang menjadi
+knowledge contributor, bagaimana pengetahuan tersebut digunakan, dan apakah ada risiko
+knowledge theftatau bias sistematis yang merugikan pihak tertentu.
+Knowledge Contributor
+Sistem Jobiq memperoleh pengetahuan dari dua sumber utama:
+1.CV/Profil Pengguna:Pengguna mengunggah CV atau mengisi profil yang mencakup
+keahlian, pengalaman, preferensi lokasi, rentang gaji, dan model kerja. Data ini menjadi
+basis preferensi untuk penyaringan.
+2.Teks Lowongan Kerja:Sistem melakukanscrapingterhadap deskripsi lowongan yang
+tersedia secara publik di platform rekrutmen. LLM kemudian mem-parsedan mengek-
+strak informasi terstruktur (tech stack, lokasi, gaji, kualifikasi) dari teks yang sering kali
+tidak terstruktur.
+Risiko Bias & Etika:
+•Bias Bahasa:LLM yang digunakan umumnya lebih terlatih pada teks bahasa Inggris.
+Hal ini berpotensi menyebabkan lowongan berbahasa Indonesia (terutama dari perusa-
+haan lokal/UMKM) terlewat atau salah di-parse. Misalnya, deskripsi “Diutamakan yang
+berpengalaman di bidangtata niaga” mungkin tidak dikenali sebagaibusiness develop-
+ment.
+•Bias Preferensi Terselubung:Jika sistem dilatih dengan data historis perusahaan ter-
+tentu, ada risiko bias terhadap institusi pendidikan, gender, atau usia yang tidak terlihat
+secara eksplisit tetapi tertanam dalam pola data.
+6
+
+
+--- Page 8 ---
+•EtikaScraping:Prosesscrapingberpotensi melanggarTerms of Serviceplatform dan
+membebani server mereka. Selain itu, terdapat pertanyaan etis: apakah adil mengam-
+bil data lowongan yang dikurasi oleh platform tanpa kompensasi? Aspek ini berkaitan
+dengan konsepknowledge theftdari Zanzotto.
+•Risiko Privasi:Data CV pengguna mengandung informasi sensitif. Sistem harus memas-
+tikan data ini tidak bocor, tidak dijual, dan hanya digunakan untuk tujuan pencocokan
+lowongan.
+Solusi dan Mitigasi:
+• Sistem harus transparan tentang sumber data dengan menampilkan label “Data dari:
+LinkedIn, Glints, Kalibrr” pada setiap hasil.
+• Hanya mengambil data yang tersedia secara publik dan menerapkanrate limitingagar
+tidak membebani server sumber.
+• Pengguna diberi kontrol penuh untuk mematikan atau menyesuaikan filter otomatis yang
+berpotensi bias (misal: filter IPK, filter universitas, filter usia).
+• Menyediakan opsi “Explain this filter” agar pengguna dapat memahami mengapa suatu
+lowongan difilter keluar.
+• Data CV pengguna dienkripsi dan disimpan secara lokal (client-side) atau dengan opsi
+hapus kapan saja.
+4.3 Augmentation (Wu et al.)
+Menurut kerangka Wu et al., pendekatanaugmentationmenekankan bahwa AI seharusnya
+memperkuat(augment) kemampuan manusia, bukanmenggantikan(replace). Dalam konteks
+Jobiq, hal ini berarti AI berperan sebagai asisten cerdas yang menangani tugas-tugas bervolume
+tinggi dan repetitif, sementara keputusan strategis tetap berada di tangan pengguna.
+Human-in-the-Loop (HitL)
+Desain sistem mengikuti siklusHuman-in-the-Loopyang terdiri dari empat tahap iteratif:
+AI Scraping→AI Filtering→Manusia Memverifikasi→AI Belajar
+1.AI Scraping:Headless browsersecara otomatis mengunjungi LinkedIn, Kalibrr, Glints,
+dan platform lainnya untuk mengumpulkan data lowongan baru. Proses ini berjalan ter-
+jadwal (misal: setiap 6 jam) tanpa intervensi pengguna.
+2.AI Filtering & Ranking:LLM membaca dan menganalisis setiap deskripsi lowongan,
+mengekstrak informasi kunci (tech stack, lokasi, model kerja, rentang gaji), lalu menco-
+cokkan dengan profil pengguna. Hasilnya diurutkan berdasarkan skor relevansi.
+3.Manusia Memverifikasi:Pengguna menerima daftar 10–20 lowongan terfilter (bukan
+ratusan) dan melakukan verifikasi manual. Di sinilah keputusan subjektif terjadi: apakah
+perusahaan ini sesuai denganvaluepribadi? Apakah deskripsi ini terasa terlaludemand-
+ing? Pengguna dapat memberikanfeedbackberupa:Thumbs Up(relevan),Thumbs Down
+(tidak relevan), atau menambahkan catatan spesifik (misal: “Saya tidak tertarik perusa-
+haanoutsourcing” atau “Hindari perusahaan yang baru berdiri<1 tahun”).
+7
+
+
+--- Page 9 ---
+4.AI Belajar:Sistem menggunakanfeedbackpengguna untuk menyesuaikan filter dan pe-
+meringkatan pada siklus berikutnya. Semakin banyakfeedback, semakin akurat rekomen-
+dasi yang dihasilkan. Akhirnya, dapat menciptakanpositive feedback loopantara manusia
+dan AI.
+Augmentation, Bukan Automation:
+Prinsip kunci dalam desain Jobiq adalah membedakan tugas yang di-augmentdan tugas
+yang tetap menjadi otoritas manusia:
+•Tugas yang di-augmentoleh AI:Mengunjungi ratusan halaman lowongan di berbagai
+platform (menggantikanscrollingmanual), membaca dan merangkum deskripsi peker-
+jaan yang panjang, mendeteksi duplikasi lowongan lintas platform, memberikan peringatan
+terhadap lowongan yang terindikasi palsu ataughost job.
+•Tugas yang tetap milik manusia:Keputusan melamar atau tidak, menyusuncover let-
+teryang personal, memilih perusahaan berdasarkangut feelingdan nilai personal, serta
+seluruh proses wawancara dan negosiasi.
+Dengan pembagian peran ini, Jobiq memastikan bahwa AI tidak pernah “memutuskan” atas
+nama pengguna. AI menyederhanakan proses pencarian dari berminggu-minggu menjadi be-
+berapa menit, sementara manusia tetap memegang kendali penuh atas keputusan karirnya. Pen-
+dekatan ini juga mengurangi risikoover-reliancepada AI, karena pengguna secara aktif dili-
+batkan dalam setiap siklus.
+8
+
+
+--- Page 10 ---
+Contribution Log
+Nama (NPM) Kontribusi Spesifik Persentase
+Alexander Christhian
+(2306267025)
+Problem Statement, Context of Use 25%
+Rowen Rodotua Harahap
+(2306250604)
+User Persona (Persona 1 & Persona 2) 25%
+Bryan Herdianto
+(2306210885)
+Analisis Pilar HAI: Comprehensibility
+& Fairness
+25%
+Muhammad Riyan Satrio Wi-
+bowo
+(2306229323)
+Analisis Pilar HAI: Augmentation, re-
+view keseluruhan
+25%
+9
