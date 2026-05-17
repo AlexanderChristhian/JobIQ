@@ -1,36 +1,64 @@
 {
-  "savedJobs": [
-    {
-      "id": "sv_001", "title": "Senior UX Designer", "company": "TechFlow",
-      "location": "San Francisco", "workModel": "On-site",
-      "salaryRange": "$140k - $160k", "seniority": "Senior", "source": "LinkedIn",
-      "postedAt": "1d ago", "verified": true, "matchScore": 98,
-      "personalNotes": "Great benefits package and close to gym.",
-      "coverImage": "blue-tech"
-    },
-    {
-      "id": "sv_002", "title": "Product Designer", "company": "GreenScale",
-      "location": "Remote", "workModel": "Remote",
-      "salaryRange": "$130k - $150k", "seniority": "Senior", "source": "Kalibrr",
-      "postedAt": "3d ago", "verified": true, "matchScore": 85,
-      "personalNotes": "Really like their sustainability mission.",
-      "coverImage": "green-organic"
-    },
-    {
-      "id": "sv_003", "title": "Lead Frontend Engineer", "company": "Nebula Systems",
-      "location": "New York", "workModel": "Hybrid",
-      "salaryRange": "$160k - $190k", "seniority": "Lead", "source": "JobStreet",
-      "postedAt": "1w ago", "verified": false, "matchScore": 72,
-      "personalNotes": "",
-      "coverImage": "indigo-geometric"
-    },
-    {
-      "id": "sv_004", "title": "UX Researcher", "company": "Solaris Tech",
-      "location": "Austin", "workModel": "On-site",
-      "salaryRange": "$110k - $130k", "seniority": "Mid", "source": "LinkedIn",
-      "postedAt": "2w ago", "verified": false, "matchScore": 65,
-      "personalNotes": "Referral from Mike.",
-      "coverImage": "orange-energetic"
-    }
-  ]
+	"savedJobs": [
+		{
+			"id": "sv_001",
+			"title": "Senior UX Designer",
+			"company": "TechFlow",
+			"location": "San Francisco",
+			"workModel": "On-site",
+			"salaryRange": "$140k - $160k",
+			"seniority": "Senior",
+			"source": "LinkedIn",
+			"postedAt": "1d ago",
+			"verified": true,
+			"matchScore": 98,
+			"personalNotes": "Great benefits package and close to gym.",
+			"coverImage": "blue-tech"
+		},
+		{
+			"id": "sv_002",
+			"title": "Product Designer",
+			"company": "GreenScale",
+			"location": "Remote",
+			"workModel": "Remote",
+			"salaryRange": "$130k - $150k",
+			"seniority": "Senior",
+			"source": "Kalibrr",
+			"postedAt": "3d ago",
+			"verified": true,
+			"matchScore": 85,
+			"personalNotes": "Really like their sustainability mission.",
+			"coverImage": "green-organic"
+		},
+		{
+			"id": "sv_003",
+			"title": "Lead Frontend Engineer",
+			"company": "Nebula Systems",
+			"location": "New York",
+			"workModel": "Hybrid",
+			"salaryRange": "$160k - $190k",
+			"seniority": "Lead",
+			"source": "JobStreet",
+			"postedAt": "1w ago",
+			"verified": false,
+			"matchScore": 72,
+			"personalNotes": "",
+			"coverImage": "indigo-geometric"
+		},
+		{
+			"id": "sv_004",
+			"title": "UX Researcher",
+			"company": "Solaris Tech",
+			"location": "Austin",
+			"workModel": "On-site",
+			"salaryRange": "$110k - $130k",
+			"seniority": "Mid",
+			"source": "LinkedIn",
+			"postedAt": "2w ago",
+			"verified": false,
+			"matchScore": 65,
+			"personalNotes": "Referral from Mike.",
+			"coverImage": "orange-energetic"
+		}
+	]
 }

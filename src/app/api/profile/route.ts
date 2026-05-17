@@ -2,5 +2,5 @@ import { NextResponse } from "next/server";
 import data from "@/data/profile.json";
 
 export async function GET() {
-  return NextResponse.json(data);
+	return NextResponse.json(data);
 }

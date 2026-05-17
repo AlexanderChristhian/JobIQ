@@ -1,9 +1,11 @@
 # JobIQ Build Tasks
 
 ## Goal
+
 Produce a high fidelity Next.js front end for JobIQ based on the provided references and context. Focus on UI, interactions, and believable AI outputs with mocked data.
 
 ## Scope pages
+
 1. Dashboard with recommendations and detail view
 2. Profile and CV Upload
 3. Preferences
@@ -13,6 +15,7 @@ Produce a high fidelity Next.js front end for JobIQ based on the provided refere
 7. Settings shell (basic layout)
 
 ## Route map
+
 - / (dashboard)
 - /profile
 - /preferences
@@ -22,6 +25,7 @@ Produce a high fidelity Next.js front end for JobIQ based on the provided refere
 - /settings
 
 ## Build order
+
 1. Scaffold Next.js app (App Router) with Tailwind and TypeScript.
 2. Create global styles and design tokens to match Frontend_Reference.
 3. Build base layout, navigation, and page shell.
@@ -33,6 +37,7 @@ Produce a high fidelity Next.js front end for JobIQ based on the provided refere
 9. Validate visual parity with Frontend_Reference.
 
 ## Component checklist
+
 - Glass panel and glass card
 - Navigation top bar and side rail
 - Search input with icon
@@ -46,6 +51,7 @@ Produce a high fidelity Next.js front end for JobIQ based on the provided refere
 - Notification and risk labels
 
 ## Interaction checklist
+
 - Filter and sort controls update the list.
 - Saving a job adds it to Saved Jobs and compare tray.
 - Compare tray supports up to 3 jobs.
@@ -54,6 +60,7 @@ Produce a high fidelity Next.js front end for JobIQ based on the provided refere
 - Apply buttons always open external link.
 
 ## Data checklist
+
 - Seed data for jobs, companies, and user profile.
 - Match reasoning fields for each recommendation.
 - Risk flags for ghost job or low confidence.
@@ -61,6 +68,7 @@ Produce a high fidelity Next.js front end for JobIQ based on the provided refere
 - JSON fixtures and TypeScript types for API routes.
 
 ## Done when
+
 - All routes render without broken layouts.
 - Mock API routes respond with valid JSON.
 - Text is readable and contrast compliant.

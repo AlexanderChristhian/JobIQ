@@ -1,10 +1,10 @@
 {
-  "preferences": {
-    "salaryMin": 80000,
-    "salaryMax": 200000,
-    "workModel": ["Remote", "Hybrid"],
-    "preferredLocations": ["San Francisco", "Remote", "New York"],
-    "noticePeriod": "Immediately available",
-    "sourcePlatforms": ["LinkedIn", "Glints", "Kalibrr", "JobStreet", "Indeed"]
-  }
+	"preferences": {
+		"salaryMin": 80000,
+		"salaryMax": 200000,
+		"workModel": ["Remote", "Hybrid"],
+		"preferredLocations": ["San Francisco", "Remote", "New York"],
+		"noticePeriod": "Immediately available",
+		"sourcePlatforms": ["LinkedIn", "Glints", "Kalibrr", "JobStreet", "Indeed"]
+	}
 }
