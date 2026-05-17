@@ -1,6 +1,13 @@
 import React from "react";
 
-type ActivePage = "dashboard" | "jobs" | "profile" | "settings" | null;
+type ActivePage =
+	| "dashboard"
+	| "interview"
+	| "tracker"
+	| "jobs"
+	| "profile"
+	| "settings"
+	| null;
 
 interface HeaderProps {
 	activePage?: ActivePage;
@@ -9,6 +16,8 @@ interface HeaderProps {
 
 const navItems: { label: string; href: string; page: ActivePage }[] = [
 	{ label: "Dashboard", href: "/", page: "dashboard" },
+	{ label: "Interview", href: "/interview", page: "interview" },
+	{ label: "Tracker", href: "/tracker", page: "tracker" },
 	{ label: "Jobs", href: "/saved-jobs", page: "jobs" },
 	{ label: "Profile", href: "/profile", page: "profile" },
 	{ label: "Settings", href: "/settings", page: "settings" },
@@ -28,7 +37,7 @@ function Header({ activePage = null, actions }: HeaderProps) {
 						JobIQ
 					</h2>
 				</a>
-				<label className="hidden lg:flex flex-col min-w-40 !h-10 max-w-64">
+				<label className="hidden lg:flex flex-col min-w-40 h-10! max-w-64">
 					<div className="flex w-full flex-1 items-stretch rounded-lg h-full ring-1 ring-white/10 bg-white/5 focus-within:ring-primary-dark/50 transition-all">
 						<div className="text-slate-400 flex border-none items-center justify-center pl-4 rounded-l-lg border-r-0">
 							<span className="material-symbols-outlined text-lg">search</span>
@@ -58,8 +67,8 @@ function Header({ activePage = null, actions }: HeaderProps) {
 				</div>
 				<div className="flex items-center gap-4">
 					{actions}
-					<div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-white/10 bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold">
-						AM
+					<div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-white/10 bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold">
+						AX
 					</div>
 				</div>
 			</div>
