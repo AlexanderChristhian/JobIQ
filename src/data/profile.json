@@ -1,0 +1,18 @@
+{
+  "profile": {
+    "name": "Alex Morgan",
+    "title": "Senior Product Designer",
+    "location": "San Francisco, CA",
+    "experience": [
+      { "role": "Senior UX Designer", "company": "TechFlow Inc.", "period": "2021 - Present" },
+      { "role": "Product Designer", "company": "Creative Solutions", "period": "2018 - 2021" }
+    ],
+    "skills": ["Figma", "User Research", "Prototyping", "HTML/CSS", "Design Systems"],
+    "profileStrength": 85,
+    "missingSkills": ["Team Management", "Agile Methodology", "Product Strategy"],
+    "recommendedRoles": [
+      { "title": "Senior Product Designer", "company": "Google", "location": "Remote", "match": 98 },
+      { "title": "UX Lead", "company": "Spotify", "location": "New York", "match": 92 }
+    ]
+  }
+}

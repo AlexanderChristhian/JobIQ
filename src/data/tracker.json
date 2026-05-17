@@ -1,0 +1,19 @@
+{
+  "columns": {
+    "applied": [
+      { "id": "tr_001", "title": "Product Designer", "company": "Spotify", "location": "Stockholm", "timeAgo": "2d ago", "aiSuggestion": "Review your portfolio case studies for audio interfaces." },
+      { "id": "tr_002", "title": "UX Researcher", "company": "Airbnb", "location": "Remote", "timeAgo": "5d ago" },
+      { "id": "tr_003", "title": "Frontend Developer", "company": "Notion", "location": "San Francisco", "timeAgo": "1w ago" }
+    ],
+    "screening": [
+      { "id": "tr_004", "title": "Senior Product Designer", "company": "Linear", "location": "Remote", "timeAgo": "Call Tmrw", "aiSuggestion": "Prepare questions about their new roadmap feature.", "actionLabel": "Call Tmrw" },
+      { "id": "tr_005", "title": "Design Engineer", "company": "Stripe", "location": "Dublin", "timeAgo": "Pending", "actionLabel": "Pending" }
+    ],
+    "interviewing": [
+      { "id": "tr_006", "title": "Design Advocate", "company": "Figma", "location": "New York", "timeAgo": "Onsite", "aiSuggestion": "Send follow-up email in 2 days if no response.", "actionLabel": "Onsite", "interviewers": 4 }
+    ],
+    "offer": [
+      { "id": "tr_007", "title": "Senior Engineer", "company": "Vercel", "location": "Remote", "timeAgo": "Action Req", "aiSuggestion": "Offer expires in 3 days. Negotiate equity package?", "actionLabel": "Action Req" }
+    ]
+  }
+}
