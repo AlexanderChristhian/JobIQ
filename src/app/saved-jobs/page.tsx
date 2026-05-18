@@ -1,26 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Header from "@/components/header";
 import type { SavedJobData } from "@/lib/types";
 
-const initialJobs: SavedJobData[] = [];
+function buildSearchUrl(job: SavedJobData) {
+	const query = [job.title, job.location, job.workModel, "jobs"]
+		.filter(Boolean)
+		.join(" ");
+	return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}
 
 export default function SavedJobsPage() {
-	const [jobs, setJobs] = useState(initialJobs);
+	const [jobs, setJobs] = useState<SavedJobData[]>([]);
 	const [compareIds, setCompareIds] = useState<string[]>([]);
 	const [notes, setNotes] = useState<Record<string, string>>({});
-	const [savedNotes, setSavedNotes] = useState<Record<string, string>>({});
+	const [loading, setLoading] = useState(true);
 	const [toast, setToast] = useState<string | null>(null);
+
+	const compareJobs = useMemo(
+		() => jobs.filter((job) => compareIds.includes(job.id)),
+		[jobs, compareIds],
+	);
 
 	const showToast = (msg: string) => {
 		setToast(msg);
 		setTimeout(() => setToast(null), 2500);
 	};
 
+	const loadSavedJobs = useCallback(async () => {
+		setLoading(true);
+		try {
+			const response = await fetch("/api/saved-jobs", { cache: "no-store" });
+			const payload = (await response.json()) as { savedJobs?: SavedJobData[] };
+			if (!response.ok) throw new Error("Unable to load saved jobs.");
+			const loadedJobs = payload.savedJobs ?? [];
+			setJobs(loadedJobs);
+			setNotes(
+				Object.fromEntries(
+					loadedJobs.map((job) => [job.id, job.personalNotes ?? ""]),
+				),
+			);
+		} catch (error) {
+			showToast(
+				error instanceof Error ? error.message : "Unable to load saved jobs.",
+			);
+		} finally {
+			setLoading(false);
+		}
+	}, []);
+
+	useEffect(() => {
+		void loadSavedJobs();
+	}, [loadSavedJobs]);
+
 	const toggleCompare = (id: string) => {
 		setCompareIds((prev) => {
-			if (prev.includes(id)) return prev.filter((i) => i !== id);
+			if (prev.includes(id)) return prev.filter((item) => item !== id);
 			if (prev.length >= 3) {
 				showToast("You can compare up to 3 jobs at a time.");
 				return prev;
@@ -29,19 +65,35 @@ export default function SavedJobsPage() {
 		});
 	};
 
-	const handleDelete = (id: string) => {
-		setJobs((prev) => prev.filter((j) => j.id !== id));
-		setCompareIds((prev) => prev.filter((i) => i !== id));
-		showToast("Job removed from saved list.");
+	const handleDelete = async (id: string) => {
+		const response = await fetch(`/api/saved-jobs?id=${encodeURIComponent(id)}`, {
+			method: "DELETE",
+		});
+		if (!response.ok) {
+			showToast("Unable to remove job.");
+			return;
+		}
+		setJobs((prev) => prev.filter((job) => job.id !== id));
+		setCompareIds((prev) => prev.filter((item) => item !== id));
+		showToast("Job removed.");
 	};
 
-	const handleSaveNote = (id: string) => {
-		setSavedNotes((prev) => ({ ...prev, [id]: notes[id] || "" }));
-		showToast("Note saved!");
-	};
-
-	const handleApply = (title: string) => {
-		showToast(`Redirecting to application page for "${title}"...`);
+	const handleSaveNote = async (id: string) => {
+		const response = await fetch("/api/saved-jobs", {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ id, personalNotes: notes[id] ?? "" }),
+		});
+		if (!response.ok) {
+			showToast("Unable to save note.");
+			return;
+		}
+		setJobs((prev) =>
+			prev.map((job) =>
+				job.id === id ? { ...job, personalNotes: notes[id] ?? "" } : job,
+			),
+		);
+		showToast("Note saved.");
 	};
 
 	return (
@@ -50,7 +102,7 @@ export default function SavedJobsPage() {
 			style={{
 				backgroundColor: "#0f0518",
 				backgroundImage:
-					"radial-gradient(circle at 10% 20%, rgba(88, 28, 135, 0.4) 0%, transparent 40%), radial-gradient(circle at 90% 60%, rgba(126, 34, 206, 0.3) 0%, transparent 40%), radial-gradient(circle at 50% 120%, rgba(168, 85, 247, 0.2) 0%, transparent 50%)",
+					"radial-gradient(circle at 10% 20%, rgba(88, 28, 135, 0.4) 0%, transparent 40%), radial-gradient(circle at 90% 60%, rgba(6, 182, 212, 0.16) 0%, transparent 38%), radial-gradient(circle at 50% 120%, rgba(168, 85, 247, 0.18) 0%, transparent 50%)",
 				backgroundAttachment: "fixed",
 			}}
 		>
@@ -69,46 +121,45 @@ export default function SavedJobsPage() {
 							Saved Jobs
 						</h1>
 						<p className="text-slate-400 text-lg">
-							Track and compare up to 3 jobs side-by-side.
+							Save recommendations, compare fit, and keep notes in your account.
 						</p>
 					</div>
 
-					{compareIds.length > 0 && (
-						<div className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-4 md:p-6 border border-primary-dark/30 bg-purple-900/20 relative overflow-hidden">
-							<div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent pointer-events-none"></div>
-							<div className="flex items-center justify-between relative z-10">
-								<div className="flex items-center gap-3">
-									<span className="material-symbols-outlined text-primary-dark">
-										compare_arrows
-									</span>
-									<span className="text-white font-bold">
-										{compareIds.length} job{compareIds.length > 1 ? "s" : ""}{" "}
-										selected
-									</span>
-									<span className="text-xs text-slate-500">
-										Click Compare to see a side-by-side view
-									</span>
-								</div>
-								<div className="flex gap-3">
-									<button
-										onClick={() => showToast("Comparison view opened!")}
-										className="px-5 py-2 rounded-lg bg-primary hover:bg-purple-500 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(168,85,247,0.25)]"
-									>
-										Compare
-									</button>
-									<button
-										onClick={() => setCompareIds([])}
-										className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 text-sm hover:bg-white/10 transition-all"
-									>
-										Clear
-									</button>
-								</div>
+					{compareJobs.length > 0 && (
+						<section className="glass-panel rounded-xl p-5 border border-primary-dark/30">
+							<div className="flex items-center justify-between gap-4 mb-4">
+								<h2 className="text-white font-bold">
+									Comparing {compareJobs.length} job
+									{compareJobs.length > 1 ? "s" : ""}
+								</h2>
+								<button
+									onClick={() => setCompareIds([])}
+									className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 text-sm hover:bg-white/10 transition-all"
+								>
+									Clear
+								</button>
 							</div>
-						</div>
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+								{compareJobs.map((job) => (
+									<div
+										key={job.id}
+										className="rounded-lg border border-white/10 bg-white/[0.03] p-4"
+									>
+										<p className="font-bold text-white text-sm">{job.title}</p>
+										<p className="text-xs text-slate-500 mt-1">
+											{job.location} &bull; {job.workModel}
+										</p>
+										<p className="text-xs text-green-400 mt-2">
+											{job.matchScore}% match
+										</p>
+									</div>
+								))}
+							</div>
+						</section>
 					)}
 
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-						{jobs.length === 0 && (
+						{!loading && jobs.length === 0 && (
 							<div className="lg:col-span-2 glass-panel rounded-xl p-12 text-center border border-white/10">
 								<span className="material-symbols-outlined text-5xl text-slate-600 mb-4">
 									bookmark
@@ -117,10 +168,21 @@ export default function SavedJobsPage() {
 									No saved jobs yet
 								</h2>
 								<p className="text-slate-500 mt-2 max-w-md mx-auto">
-									Save jobs from your recommendations to compare them here.
+									Save roles from your dashboard recommendations to compare them
+									here.
 								</p>
 							</div>
 						)}
+
+						{loading && (
+							<div className="lg:col-span-2 glass-panel rounded-xl p-12 text-center border border-white/10">
+								<span className="material-symbols-outlined text-4xl text-primary-dark animate-spin mb-3">
+									progress_activity
+								</span>
+								<p className="text-slate-300">Loading saved jobs...</p>
+							</div>
+						)}
+
 						{jobs.map((job) => {
 							const checked = compareIds.includes(job.id);
 							return (
@@ -132,14 +194,14 @@ export default function SavedJobsPage() {
 										<div className="flex items-start justify-between gap-4 mb-4">
 											<div className="flex items-start gap-4 flex-1 min-w-0">
 												<div className="size-14 rounded-xl bg-gradient-to-br from-purple-600/30 to-slate-800/30 border border-white/10 flex items-center justify-center flex-shrink-0 text-xl font-bold text-primary-dark">
-													{job.company.charAt(0)}
+													{job.title.charAt(0)}
 												</div>
 												<div className="min-w-0">
 													<h3 className="text-lg font-bold text-white leading-snug">
 														{job.title}
 													</h3>
 													<p className="text-slate-400 text-sm">
-														{job.company} • {job.location}
+														{job.workModel} &bull; {job.location}
 													</p>
 													<div className="flex items-center gap-2 mt-2 flex-wrap">
 														<span className="text-xs font-bold text-green-400 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">
@@ -149,10 +211,7 @@ export default function SavedJobsPage() {
 															{job.salaryRange}
 														</span>
 														<span className="text-xs text-slate-500">
-															{job.workModel}
-														</span>
-														<span className="text-xs text-slate-500">
-															{job.postedAt}
+															{job.source}
 														</span>
 													</div>
 												</div>
@@ -168,31 +227,21 @@ export default function SavedJobsPage() {
 											</button>
 										</div>
 
-										<div className="mb-3">
-											<textarea
-												placeholder="Personal notes about this job..."
-												value={notes[job.id] || ""}
-												onChange={(e) =>
-													setNotes((prev) => ({
-														...prev,
-														[job.id]: e.target.value,
-													}))
-												}
-												className="w-full rounded-lg bg-white/5 border border-white/10 text-white text-xs p-3 h-16 resize-none focus:outline-none focus:border-primary-dark/50 focus:bg-white/10 transition-all placeholder:text-slate-600"
-											/>
-											<div className="flex justify-end mt-1">
-												<button
-													onClick={() => handleSaveNote(job.id)}
-													className="text-xs text-primary-dark hover:text-white transition-colors px-3 py-1 rounded-md hover:bg-primary/20"
-												>
-													{savedNotes[job.id] ? "Update Note" : "Save Note"}
-												</button>
-											</div>
-										</div>
+										<textarea
+											placeholder="Personal notes about this job..."
+											value={notes[job.id] || ""}
+											onChange={(event) =>
+												setNotes((prev) => ({
+													...prev,
+													[job.id]: event.target.value,
+												}))
+											}
+											className="w-full rounded-lg bg-white/5 border border-white/10 text-white text-xs p-3 h-16 resize-none focus:outline-none focus:border-primary-dark/50 focus:bg-white/10 transition-all placeholder:text-slate-600"
+										/>
 
-										<div className="flex items-center justify-between pt-3 border-t border-white/5">
+										<div className="flex items-center justify-between pt-3 mt-3 border-t border-white/5">
 											<button
-												onClick={() => handleDelete(job.id)}
+												onClick={() => void handleDelete(job.id)}
 												className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-400 transition-colors px-3 py-2 rounded-lg hover:bg-red-500/10"
 											>
 												<span className="material-symbols-outlined text-lg">
@@ -202,24 +251,19 @@ export default function SavedJobsPage() {
 											</button>
 											<div className="flex gap-2">
 												<button
-													onClick={() =>
-														showToast(
-															`Cover letter draft generated for "${job.title}".`,
-														)
-													}
+													onClick={() => void handleSaveNote(job.id)}
 													className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/10 transition-all"
 												>
-													<span className="material-symbols-outlined text-[16px] align-middle mr-1">
-														description
-													</span>
-													Cover Letter
+													Save Note
 												</button>
-												<button
-													onClick={() => handleApply(job.title)}
+												<a
+													href={buildSearchUrl(job)}
+													target="_blank"
+													rel="noreferrer"
 													className="px-4 py-2 rounded-lg bg-primary hover:bg-purple-500 text-white text-xs font-bold transition-all shadow-[0_0_15px_rgba(168,85,247,0.2)]"
 												>
-													Apply Now
-												</button>
+													Search Jobs
+												</a>
 											</div>
 										</div>
 									</div>

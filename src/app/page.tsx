@@ -164,6 +164,33 @@ export default function DashboardPage() {
 		setTimeout(() => setNoteToast(null), 2000);
 	};
 
+	const handleSaveJob = async (job: RecommendationJob) => {
+		try {
+			const response = await fetch("/api/saved-jobs", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					id: job.id,
+					title: job.title,
+					company: job.company,
+					location: job.location,
+					workModel: job.workModel,
+					salaryRange: job.salaryRange,
+					seniority: job.seniority,
+					source: job.source,
+					postedAt: job.postedAt,
+					verified: job.verified,
+					matchScore: job.matchScore,
+					personalNotes: notes[job.id] || "",
+				}),
+			});
+			if (!response.ok) throw new Error("Unable to save job.");
+			showToast("Saved to Jobs.");
+		} catch (error) {
+			showToast(error instanceof Error ? error.message : "Unable to save job.");
+		}
+	};
+
 	return (
 		<div
 			className="font-display text-slate-200 min-h-screen flex flex-col overflow-x-clip selection:bg-purple-500 selection:text-white"
@@ -449,6 +476,15 @@ export default function DashboardPage() {
 														stylus_note
 													</span>
 													{savedNotes[job.id] ? "Saved" : "Note"}
+												</button>
+												<button
+													onClick={() => void handleSaveJob(job)}
+													className="text-xs text-slate-500 hover:text-primary-dark transition-colors flex items-center gap-1"
+												>
+													<span className="material-symbols-outlined text-[16px]">
+														bookmark_add
+													</span>
+													Save
 												</button>
 												<a
 													href={buildJobSearchUrl(job)}

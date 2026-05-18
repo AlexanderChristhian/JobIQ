@@ -33,6 +33,26 @@ export interface JobPreferences {
 	preferredLocation: string;
 	workModel: string;
 	notes: string;
+	salaryMin: number;
+	salaryMax: number;
+	desiredRoles: string[];
+	keywords: string[];
+}
+
+export interface SavedJobRecord {
+	id: string;
+	title: string;
+	company: string;
+	location: string;
+	workModel: string;
+	salaryRange: string;
+	seniority: string;
+	source: string;
+	postedAt: string;
+	verified: boolean;
+	matchScore: number;
+	personalNotes: string;
+	createdAt: string;
 }
 
 export interface UserProfile {
@@ -62,6 +82,7 @@ interface UserRecord extends PublicUser {
 	passwordHash: string;
 	passwordSalt: string;
 	createdAt: string;
+	savedJobs?: SavedJobRecord[];
 }
 
 interface SessionRecord {
@@ -93,6 +114,10 @@ const emptyJobPreferences: JobPreferences = {
 	preferredLocation: "",
 	workModel: "Flexible",
 	notes: "",
+	salaryMin: 0,
+	salaryMax: 0,
+	desiredRoles: [],
+	keywords: [],
 };
 
 function normalizeEmail(email: string) {
@@ -195,6 +220,10 @@ function normalizeProfile(
 			preferredLocation: cleanString(rawPreferences.preferredLocation),
 			workModel: cleanString(rawPreferences.workModel) || "Flexible",
 			notes: cleanString(rawPreferences.notes),
+			salaryMin: Math.max(0, Number(rawPreferences.salaryMin) || 0),
+			salaryMax: Math.max(0, Number(rawPreferences.salaryMax) || 0),
+			desiredRoles: cleanStringArray(rawPreferences.desiredRoles, 12),
+			keywords: cleanStringArray(rawPreferences.keywords, 24),
 		},
 		cvReview: {
 			headline: cleanString(rawReview.headline),
@@ -390,7 +419,7 @@ export async function updateUserProfileFromCv(
 		missingSkills: string[];
 		recommendedRoles: RecommendedRole[];
 		cvFileName: string;
-		jobPreferences: JobPreferences;
+		jobPreferences: Partial<JobPreferences>;
 		cvReview: CvReview;
 	},
 ) {
@@ -432,4 +461,122 @@ export async function updateUserProfileFromCv(
 
 	await writeDatabase(database);
 	return toPublicUser(user);
+}
+
+export async function updateUserPreferences(
+	userId: string,
+	updates: Partial<JobPreferences>,
+) {
+	const database = await readDatabase();
+	const user = database.users.find((candidate) => candidate.id === userId);
+	if (!user) throw new Error("User not found.");
+
+	const currentProfile = normalizeProfile(user.profile, user.name);
+	user.profile = normalizeProfile(
+		{
+			...currentProfile,
+			jobPreferences: {
+				...currentProfile.jobPreferences,
+				...updates,
+				desiredRoles: updates.desiredRoles ?? currentProfile.jobPreferences.desiredRoles,
+				keywords: updates.keywords ?? currentProfile.jobPreferences.keywords,
+			},
+		},
+		user.name,
+	);
+
+	await writeDatabase(database);
+	return toPublicUser(user);
+}
+
+function normalizeSavedJob(job: Partial<SavedJobRecord>): SavedJobRecord | null {
+	const id = cleanString(job.id);
+	const title = cleanString(job.title);
+	if (!id || !title) return null;
+
+	return {
+		id,
+		title,
+		company: cleanString(job.company) || "Role search",
+		location: cleanString(job.location) || "Flexible",
+		workModel: cleanString(job.workModel) || "Flexible",
+		salaryRange: cleanString(job.salaryRange) || "Research salary before applying",
+		seniority: cleanString(job.seniority) || "Based on CV",
+		source: cleanString(job.source) || "CV analysis",
+		postedAt: cleanString(job.postedAt) || "Personalized now",
+		verified: Boolean(job.verified),
+		matchScore: clamp(Number(job.matchScore) || 0, 0, 100),
+		personalNotes: cleanString(job.personalNotes),
+		createdAt: cleanString(job.createdAt) || new Date().toISOString(),
+	};
+}
+
+export async function listSavedJobs(userId: string) {
+	const database = await readDatabase();
+	const user = database.users.find((candidate) => candidate.id === userId);
+	if (!user) throw new Error("User not found.");
+
+	return (user.savedJobs ?? [])
+		.map((job) => normalizeSavedJob(job))
+		.filter((job): job is SavedJobRecord => Boolean(job));
+}
+
+export async function saveUserJob(
+	userId: string,
+	job: Partial<SavedJobRecord>,
+) {
+	const database = await readDatabase();
+	const user = database.users.find((candidate) => candidate.id === userId);
+	if (!user) throw new Error("User not found.");
+
+	const normalized = normalizeSavedJob({
+		...job,
+		createdAt: cleanString(job.createdAt) || new Date().toISOString(),
+	});
+	if (!normalized) throw new Error("Job title is required.");
+
+	const existing = (user.savedJobs ?? [])
+		.map((item) => normalizeSavedJob(item))
+		.filter((item): item is SavedJobRecord => Boolean(item));
+	user.savedJobs = [
+		normalized,
+		...existing.filter((item) => item.id !== normalized.id),
+	].slice(0, 50);
+
+	await writeDatabase(database);
+	return user.savedJobs;
+}
+
+export async function updateSavedJobNote(
+	userId: string,
+	jobId: string,
+	personalNotes: string,
+) {
+	const database = await readDatabase();
+	const user = database.users.find((candidate) => candidate.id === userId);
+	if (!user) throw new Error("User not found.");
+
+	user.savedJobs = (user.savedJobs ?? [])
+		.map((job) => normalizeSavedJob(job))
+		.filter((job): job is SavedJobRecord => Boolean(job))
+		.map((job) =>
+			job.id === jobId ? { ...job, personalNotes: personalNotes.trim() } : job,
+		);
+
+	await writeDatabase(database);
+	return user.savedJobs;
+}
+
+export async function deleteSavedJob(userId: string, jobId: string) {
+	const database = await readDatabase();
+	const user = database.users.find((candidate) => candidate.id === userId);
+	if (!user) throw new Error("User not found.");
+
+	user.savedJobs = (user.savedJobs ?? [])
+		.map((job) => normalizeSavedJob(job))
+		.filter((job): job is SavedJobRecord => Boolean(job))
+		.filter((job) => job.id !== jobId);
+
+	await writeDatabase(database);
+	return user.savedJobs;
 }

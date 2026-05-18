@@ -36,6 +36,7 @@ interface ApplicationItem {
 	aiSuggestion?: string;
 	actionLabel?: string;
 	interviewers?: number;
+	reminderSet?: boolean;
 	stage: Stage;
 }
 
@@ -132,22 +133,24 @@ export default function TrackerPage() {
 					: "Suggestion generated.",
 			);
 		} catch {
-			const suggestion =
-				"Send a concise follow-up that restates your fit and asks about the next step.";
-			setApplications((prev) =>
-				prev.map((a) =>
-					a.id === app.id ? { ...a, aiSuggestion: suggestion } : a,
-				),
-			);
-			showToast("Suggestion generated.");
+			showToast("AI suggestion is unavailable right now.");
 		} finally {
 			setLoadingSuggestion(null);
 		}
 	};
 
-	const handleReminder = () => {
-		showToast(
-			"Reminder set! We'll notify you to follow up on this application.",
+	const handleReminder = (id: string) => {
+		setApplications((prev) =>
+			prev.map((app) =>
+				app.id === id ? { ...app, reminderSet: !app.reminderSet } : app,
+			),
+		);
+		showToast("Reminder updated.");
+	};
+
+	const updateStage = (id: string, stage: Stage) => {
+		setApplications((prev) =>
+			prev.map((app) => (app.id === id ? { ...app, stage } : app)),
 		);
 	};
 
@@ -343,6 +346,14 @@ export default function TrackerPage() {
 															Waiting for AI suggestion...
 														</div>
 													)}
+													{app.reminderSet && (
+														<div className="mt-2 flex items-center gap-2 text-xs text-cyan-300 bg-cyan-500/10 px-3 py-2 rounded-lg border border-cyan-500/20">
+															<span className="material-symbols-outlined text-[16px]">
+																notifications
+															</span>
+															Follow-up reminder active
+														</div>
+													)}
 												</div>
 											</div>
 											<span
@@ -368,14 +379,14 @@ export default function TrackerPage() {
 													<button
 														onClick={(e) => {
 															e.stopPropagation();
-															handleReminder();
+															handleReminder(app.id);
 														}}
 														className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/10 transition-all"
 													>
 														<span className="material-symbols-outlined text-lg">
 															notifications
 														</span>
-														Set Reminder
+														{app.reminderSet ? "Clear Reminder" : "Set Reminder"}
 													</button>
 													<button
 														onClick={(e) => {
@@ -391,18 +402,19 @@ export default function TrackerPage() {
 															? "Get New Suggestion"
 															: "Get AI Suggestion"}
 													</button>
-													<button
-														onClick={(e) => {
-															e.stopPropagation();
-															showToast("Application status updated!");
-														}}
-														className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/10 transition-all"
+													<select
+														value={app.stage}
+														onClick={(e) => e.stopPropagation()}
+														onChange={(e) =>
+															updateStage(app.id, e.target.value as Stage)
+														}
+														className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/10 transition-all"
 													>
-														<span className="material-symbols-outlined text-lg">
-															update
-														</span>
-														Update Stage
-													</button>
+														<option value="applied">Applied</option>
+														<option value="screening">Screening</option>
+														<option value="interviewing">Interview</option>
+														<option value="offer">Offer</option>
+													</select>
 												</div>
 											</div>
 										)}

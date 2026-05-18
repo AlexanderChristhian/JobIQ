@@ -56,9 +56,7 @@ export default function SettingsPage() {
 				initialNotifications.map((n) => ({ ...n, enabled: false })),
 			);
 			setSources(initialSources.map((s) => ({ ...s, enabled: false })));
-			showToast("All data has been reset to defaults.");
-		} else if (confirmAction === "delete") {
-			showToast("Account deletion request submitted (simulated).");
+			showToast("Settings reset.");
 		}
 		setConfirmAction(null);
 	};
@@ -96,8 +94,8 @@ export default function SettingsPage() {
 						</div>
 						<p className="text-slate-300 text-sm mb-6">
 							{confirmAction === "reset"
-								? "This will reset all your settings and saved data. This action cannot be undone."
-								: "This will permanently delete your account and all associated data. This action cannot be undone."}
+								? "This will turn off notifications and search platforms for this browser session."
+								: "Confirm this action."}
 						</p>
 						<div className="flex justify-end gap-3">
 							<button
@@ -111,8 +109,8 @@ export default function SettingsPage() {
 								className="px-5 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(239,68,68,0.25)]"
 							>
 								{confirmAction === "reset"
-									? "Reset Everything"
-									: "Delete Account"}
+									? "Reset Settings"
+									: "Confirm"}
 							</button>
 						</div>
 					</div>
@@ -165,7 +163,7 @@ export default function SettingsPage() {
 							<span className="material-symbols-outlined text-primary-dark">
 								storage
 							</span>
-							Data Sources
+							Search Platforms
 						</h2>
 						<div className="space-y-4">
 							{sources.map((source, i) => (
@@ -193,11 +191,11 @@ export default function SettingsPage() {
 							<span className="material-symbols-outlined text-primary-dark">
 								schedule
 							</span>
-							Scraping Schedule
+							Recommendation Refresh
 						</h2>
 						<div className="flex items-center gap-4">
 							<span className="text-slate-300 text-sm">
-								Check for new jobs every:
+								Refresh recommendation checks:
 							</span>
 							<select
 								value={schedule}
@@ -238,20 +236,14 @@ export default function SettingsPage() {
 							Danger Zone
 						</h2>
 						<p className="text-slate-400 text-sm mb-4">
-							Irreversible actions that affect your account data.
+							Account safety actions.
 						</p>
 						<div className="flex gap-4">
 							<button
 								onClick={() => handleDangerAction("reset")}
 								className="px-6 h-10 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-bold hover:bg-red-500/20 transition-all"
 							>
-								Reset All Data
-							</button>
-							<button
-								onClick={() => handleDangerAction("delete")}
-								className="px-6 h-10 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-bold hover:bg-red-500/20 transition-all"
-							>
-								Delete Account
+								Reset Settings
 							</button>
 						</div>
 					</div>

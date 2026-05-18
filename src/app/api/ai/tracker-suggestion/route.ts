@@ -10,19 +10,6 @@ const trackerSchema = {
 	additionalProperties: false,
 };
 
-function fallbackSuggestion(stage: string, title: string, company: string) {
-	if (stage === "interviewing") {
-		return `Prepare two role-specific stories for ${title} at ${company}, then send a concise follow-up within 24 hours of the interview.`;
-	}
-	if (stage === "screening") {
-		return `Review ${company}'s product, salary range, and role expectations before the screening call.`;
-	}
-	if (stage === "offer") {
-		return `Compare the offer against your salary target, work model preference, and growth goals before responding.`;
-	}
-	return `Send a short follow-up to ${company} that highlights one relevant project and asks about the next step.`;
-}
-
 export async function POST(request: Request) {
 	const body = await request.json().catch(() => ({}));
 	const cardId = String(body.cardId ?? "");
@@ -47,12 +34,7 @@ export async function POST(request: Request) {
 		});
 
 		if (result.status === "mock") {
-			return NextResponse.json({
-				cardId,
-				suggestion: fallbackSuggestion(stage, title, company),
-				aiStatus: "mock",
-				message: result.reason,
-			});
+			return NextResponse.json({ cardId, message: result.reason }, { status: 503 });
 		}
 
 		return NextResponse.json({
@@ -62,15 +44,15 @@ export async function POST(request: Request) {
 			model: result.model,
 		});
 	} catch (error) {
-		return NextResponse.json({
-			cardId,
-			suggestion: fallbackSuggestion(stage, title, company),
-			aiStatus: "mock",
-			message:
-				error instanceof Error
-					? error.message
-					: "AI tracker suggestion is unavailable.",
-		});
+		return NextResponse.json(
+			{
+				cardId,
+				message:
+					error instanceof Error
+						? error.message
+						: "AI tracker suggestion is unavailable.",
+			},
+			{ status: 503 },
+		);
 	}
 }
-

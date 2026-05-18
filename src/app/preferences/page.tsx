@@ -1,50 +1,86 @@
 "use client";
 
-import { useState } from "react";
-import data from "@/data/preferences.json";
+import { useEffect, useState } from "react";
 import Header from "@/components/header";
-
-const prefData = data.preferences;
+import { useAuth } from "@/lib/AuthProvider";
 
 export default function PreferencesPage() {
-	const [salaryMin, setSalaryMin] = useState(prefData.salaryMin);
-	const [salaryMax, setSalaryMax] = useState(prefData.salaryMax);
-	const [workModels, setWorkModels] = useState<string[]>(prefData.workModel);
-	const [roles, setRoles] = useState<string[]>(prefData.desiredRoles);
-	const [keywords, setKeywords] = useState(prefData.keywords.join(", "));
+	const { user, setUser } = useAuth();
+	const preferences = user?.profile.jobPreferences;
+	const [salaryMin, setSalaryMin] = useState(0);
+	const [salaryMax, setSalaryMax] = useState(0);
+	const [workModel, setWorkModel] = useState("Flexible");
+	const [targetRole, setTargetRole] = useState("");
+	const [preferredLocation, setPreferredLocation] = useState("");
+	const [roles, setRoles] = useState("");
+	const [keywords, setKeywords] = useState("");
+	const [notes, setNotes] = useState("");
+	const [saving, setSaving] = useState(false);
 	const [toast, setToast] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!preferences) return;
+		setSalaryMin(preferences.salaryMin);
+		setSalaryMax(preferences.salaryMax);
+		setWorkModel(preferences.workModel || "Flexible");
+		setTargetRole(preferences.targetRole);
+		setPreferredLocation(preferences.preferredLocation);
+		setRoles(preferences.desiredRoles.join(", "));
+		setKeywords(preferences.keywords.join(", "));
+		setNotes(preferences.notes);
+	}, [preferences]);
 
 	const showToast = (msg: string) => {
 		setToast(msg);
 		setTimeout(() => setToast(null), 2500);
 	};
 
-	const toggleWorkModel = (model: string) => {
-		setWorkModels((prev) =>
-			prev.includes(model) ? prev.filter((m) => m !== model) : [...prev, model],
-		);
+	const savePreferences = async () => {
+		setSaving(true);
+		try {
+			const response = await fetch("/api/preferences", {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					salaryMin,
+					salaryMax,
+					workModel,
+					targetRole,
+					preferredLocation,
+					desiredRoles: roles,
+					keywords,
+					notes,
+				}),
+			});
+			const payload = (await response.json().catch(() => ({}))) as {
+				user?: typeof user;
+				message?: string;
+			};
+			if (!response.ok || !payload.user) {
+				throw new Error(payload.message ?? "Unable to save preferences.");
+			}
+
+			setUser(payload.user);
+			showToast("Preferences saved.");
+		} catch (error) {
+			showToast(
+				error instanceof Error ? error.message : "Unable to save preferences.",
+			);
+		} finally {
+			setSaving(false);
+		}
 	};
 
-	const toggleRole = (role: string) => {
-		setRoles((prev) =>
-			prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role],
-		);
+	const resetForm = () => {
+		setSalaryMin(0);
+		setSalaryMax(0);
+		setWorkModel("Flexible");
+		setTargetRole("");
+		setPreferredLocation("");
+		setRoles("");
+		setKeywords("");
+		setNotes("");
 	};
-
-	const handleSave = () => {
-		showToast("Preferences saved! AI recommendations will update shortly.");
-	};
-
-	const allRoles = [
-		"Product Manager",
-		"Product Lead",
-		"Product Owner",
-		"Product Designer",
-		"Product Marketing Manager",
-		"Associate Product Manager",
-		"Technical Product Manager",
-		"Growth Product Manager",
-	];
 
 	return (
 		<div
@@ -52,7 +88,7 @@ export default function PreferencesPage() {
 			style={{
 				backgroundColor: "#0f0518",
 				backgroundImage:
-					"radial-gradient(circle at 10% 20%, rgba(88, 28, 135, 0.4) 0%, transparent 40%), radial-gradient(circle at 90% 60%, rgba(126, 34, 206, 0.3) 0%, transparent 40%), radial-gradient(circle at 50% 120%, rgba(168, 85, 247, 0.2) 0%, transparent 50%)",
+					"radial-gradient(circle at 10% 20%, rgba(88, 28, 135, 0.4) 0%, transparent 40%), radial-gradient(circle at 90% 60%, rgba(6, 182, 212, 0.16) 0%, transparent 38%), radial-gradient(circle at 50% 120%, rgba(168, 85, 247, 0.18) 0%, transparent 50%)",
 				backgroundAttachment: "fixed",
 			}}
 		>
@@ -65,136 +101,147 @@ export default function PreferencesPage() {
 			<Header activePage="preferences" />
 
 			<div className="flex-1 flex justify-center py-8 px-4 sm:px-6 lg:px-8">
-				<div className="w-full max-w-4xl flex flex-col gap-8">
+				<div className="w-full max-w-5xl flex flex-col gap-8">
 					<div>
 						<h1 className="text-white text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 drop-shadow-md">
-							Preferences &amp; Settings
+							Job Preferences
 						</h1>
 						<p className="text-slate-400 text-lg">
-							Fine-tune your job search criteria for better AI recommendations.
+							These preferences are saved to your account and used by AI
+							recommendations.
 						</p>
 					</div>
 
-					<div className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-6 md:p-8">
+					<section className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-6 md:p-8">
 						<h2 className="text-white text-xl font-bold flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
 							<span className="material-symbols-outlined text-primary-dark">
 								work
 							</span>
-							Job Requirements
+							Search Direction
 						</h2>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 							<div>
 								<label className="text-sm font-medium text-slate-400 mb-2 block">
-									Min. Salary (annual)
+									Target role
 								</label>
-								<div className="relative">
-									<span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-										$
-									</span>
-									<input
-										type="number"
-										value={salaryMin}
-										onChange={(e) => setSalaryMin(Number(e.target.value))}
-										className="w-full rounded-lg h-12 bg-white/5 border border-white/10 text-white pl-8 pr-4 focus:outline-none focus:border-primary-dark/50 focus:bg-white/10 transition-all"
-									/>
-								</div>
+								<input
+									value={targetRole}
+									onChange={(event) => setTargetRole(event.target.value)}
+									className="w-full rounded-lg h-12 bg-white/5 border border-white/10 text-white px-4 focus:outline-none focus:border-primary-dark/50"
+									placeholder="Frontend Developer"
+								/>
 							</div>
 							<div>
 								<label className="text-sm font-medium text-slate-400 mb-2 block">
-									Max. Salary (annual)
+									Preferred location
 								</label>
-								<div className="relative">
-									<span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-										$
-									</span>
-									<input
-										type="number"
-										value={salaryMax}
-										onChange={(e) => setSalaryMax(Number(e.target.value))}
-										className="w-full rounded-lg h-12 bg-white/5 border border-white/10 text-white pl-8 pr-4 focus:outline-none focus:border-primary-dark/50 focus:bg-white/10 transition-all"
-									/>
-								</div>
+								<input
+									value={preferredLocation}
+									onChange={(event) => setPreferredLocation(event.target.value)}
+									className="w-full rounded-lg h-12 bg-white/5 border border-white/10 text-white px-4 focus:outline-none focus:border-primary-dark/50"
+									placeholder="Jakarta, Remote"
+								/>
+							</div>
+							<div>
+								<label className="text-sm font-medium text-slate-400 mb-2 block">
+									Work model
+								</label>
+								<select
+									value={workModel}
+									onChange={(event) => setWorkModel(event.target.value)}
+									className="w-full rounded-lg h-12 bg-white/5 border border-white/10 text-white px-4 focus:outline-none focus:border-primary-dark/50"
+								>
+									<option>Flexible</option>
+									<option>Remote</option>
+									<option>Hybrid</option>
+									<option>On-site</option>
+								</select>
 							</div>
 						</div>
-					</div>
+					</section>
 
-					<div className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-6 md:p-8">
+					<section className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-6 md:p-8">
 						<h2 className="text-white text-xl font-bold flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
 							<span className="material-symbols-outlined text-primary-dark">
-								business_center
+								tune
 							</span>
-							Work Model
+							Filters
 						</h2>
-						<div className="flex flex-wrap gap-3">
-							{["Remote", "Hybrid", "On-site"].map((model) => (
-								<button
-									key={model}
-									onClick={() => toggleWorkModel(model)}
-									className={`px-6 py-3 rounded-xl font-medium text-sm transition-all border ${workModels.includes(model) ? "bg-primary/20 border-primary-dark/60 text-primary-dark shadow-[0_0_15px_rgba(168,85,247,0.2)]" : "bg-white/5 border-white/10 text-slate-400 hover:border-primary-dark/40 hover:text-slate-200"}`}
-								>
-									{model}
-								</button>
-							))}
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+							<div>
+								<label className="text-sm font-medium text-slate-400 mb-2 block">
+									Min. salary
+								</label>
+								<input
+									type="number"
+									min={0}
+									value={salaryMin}
+									onChange={(event) => setSalaryMin(Number(event.target.value))}
+									className="w-full rounded-lg h-12 bg-white/5 border border-white/10 text-white px-4 focus:outline-none focus:border-primary-dark/50"
+								/>
+							</div>
+							<div>
+								<label className="text-sm font-medium text-slate-400 mb-2 block">
+									Max. salary
+								</label>
+								<input
+									type="number"
+									min={0}
+									value={salaryMax}
+									onChange={(event) => setSalaryMax(Number(event.target.value))}
+									className="w-full rounded-lg h-12 bg-white/5 border border-white/10 text-white px-4 focus:outline-none focus:border-primary-dark/50"
+								/>
+							</div>
 						</div>
-					</div>
-
-					<div className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-6 md:p-8">
-						<h2 className="text-white text-xl font-bold flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
-							<span className="material-symbols-outlined text-primary-dark">
-								badge
-							</span>
-							Desired Roles
-						</h2>
-						<div className="flex flex-wrap gap-2">
-							{allRoles.map((role) => (
-								<button
-									key={role}
-									onClick={() => toggleRole(role)}
-									className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border ${roles.includes(role) ? "bg-primary/20 border-primary-dark/60 text-primary-dark shadow-[0_0_12px_rgba(168,85,247,0.2)]" : "bg-white/5 border-white/10 text-slate-400 hover:border-primary-dark/40 hover:text-slate-200"}`}
-								>
-									<span
-										className={`material-symbols-outlined text-lg ${roles.includes(role) ? "text-primary-dark" : "text-slate-600"}`}
-									>
-										{roles.includes(role)
-											? "check_box"
-											: "check_box_outline_blank"}
-									</span>
-									{role}
-								</button>
-							))}
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+							<div>
+								<label className="text-sm font-medium text-slate-400 mb-2 block">
+									Desired roles
+								</label>
+								<textarea
+									value={roles}
+									onChange={(event) => setRoles(event.target.value)}
+									className="w-full rounded-lg bg-white/5 border border-white/10 text-white p-4 h-28 focus:outline-none focus:border-primary-dark/50 resize-none"
+									placeholder="Frontend Engineer, UI Engineer, React Developer"
+								/>
+							</div>
+							<div>
+								<label className="text-sm font-medium text-slate-400 mb-2 block">
+									Keywords
+								</label>
+								<textarea
+									value={keywords}
+									onChange={(event) => setKeywords(event.target.value)}
+									className="w-full rounded-lg bg-white/5 border border-white/10 text-white p-4 h-28 focus:outline-none focus:border-primary-dark/50 resize-none"
+									placeholder="React, TypeScript, design systems"
+								/>
+							</div>
 						</div>
-					</div>
-
-					<div className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-6 md:p-8">
-						<h2 className="text-white text-xl font-bold flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
-							<span className="material-symbols-outlined text-primary-dark">
-								manage_search
-							</span>
-							Keywords &amp; Filters
-						</h2>
-						<label className="text-sm font-medium text-slate-400 mb-2 block">
-							Keywords (comma separated)
+						<label className="text-sm font-medium text-slate-400 mb-2 block mt-5">
+							Additional notes
 						</label>
 						<textarea
-							value={keywords}
-							onChange={(e) => setKeywords(e.target.value)}
-							className="w-full rounded-lg bg-white/5 border border-white/10 text-white p-4 h-24 focus:outline-none focus:border-primary-dark/50 focus:bg-white/10 transition-all resize-none"
+							value={notes}
+							onChange={(event) => setNotes(event.target.value)}
+							className="w-full rounded-lg bg-white/5 border border-white/10 text-white p-4 h-24 focus:outline-none focus:border-primary-dark/50 resize-none"
+							placeholder="Industries, schedule, constraints, or goals."
 						/>
-						<p className="text-xs text-slate-500 mt-2">
-							Examples: agile, SaaS, B2B, machine learning, growth, UX
-						</p>
-					</div>
+					</section>
 
 					<div className="flex justify-end gap-4">
-						<button className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-medium text-sm hover:bg-white/10 transition-all">
-							Reset
+						<button
+							onClick={resetForm}
+							className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-medium text-sm hover:bg-white/10 transition-all"
+						>
+							Reset Form
 						</button>
 						<button
-							onClick={handleSave}
-							className="px-8 py-3 rounded-xl bg-primary hover:bg-purple-500 text-white font-bold text-sm transition-all shadow-[0_0_20px_rgba(168,85,247,0.25)] hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] flex items-center gap-2"
+							onClick={savePreferences}
+							disabled={saving}
+							className="px-8 py-3 rounded-xl bg-primary hover:bg-purple-500 text-white font-bold text-sm transition-all shadow-[0_0_20px_rgba(168,85,247,0.25)] disabled:opacity-50 flex items-center gap-2"
 						>
 							<span className="material-symbols-outlined text-lg">save</span>
-							Save Changes
+							{saving ? "Saving..." : "Save Preferences"}
 						</button>
 					</div>
 				</div>

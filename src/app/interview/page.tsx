@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useSocket, useSocketListener } from "@/lib/SocketProvider";
-import type { InterviewFeedback } from "@/lib/wizard-types";
+import { useCallback, useState } from "react";
 import Header from "@/components/header";
+import type { InterviewFeedback } from "@/lib/wizard-types";
 
 interface InterviewApiResponse extends InterviewFeedback {
 	aiStatus?: "live" | "mock";
@@ -11,137 +10,75 @@ interface InterviewApiResponse extends InterviewFeedback {
 	message?: string;
 }
 
-const feedbackItems = [
-	{ id: "clarity", label: "Clarity", base: 75 },
-	{ id: "relevance", label: "Relevance", base: 82 },
-	{ id: "confidence", label: "Confidence", base: 68 },
-	{ id: "structure", label: "Structure", base: 70 },
+const questions = [
+	"Tell me about yourself",
+	"Why are you interested in this role?",
+	"Describe a time you handled competing deadlines.",
+	"Tell me about a project you are proud of.",
+	"What would you improve in your current skill set?",
 ];
 
 const checklistItems = [
-	{ id: "research", label: "Research the company and role" },
-	{ id: "stories", label: "Prepare 3 STAR stories" },
-	{ id: "questions", label: "Prepare 2-3 follow-up questions" },
-	{ id: "tech", label: "Review technical concepts" },
-	{ id: "fit", label: "Review behavioral fit" },
-	{ id: "resume", label: "Re-read your resume" },
-];
-
-const sampleQuestions = [
-	"Tell me about yourself",
-	"Why are you interested in this role?",
-	"Describe a time you led a cross-functional team",
-	"How do you prioritize competing deadlines?",
-	"What's your biggest professional achievement?",
+	"Research the company and role",
+	"Prepare 3 STAR stories",
+	"Prepare 2-3 follow-up questions",
+	"Review technical concepts",
+	"Re-read your CV",
 ];
 
 export default function InterviewPage() {
-	const { wizardConnected, emit } = useSocket();
+	const [questionIndex, setQuestionIndex] = useState(0);
 	const [answer, setAnswer] = useState("");
-	const [submitted, setSubmitted] = useState(false);
-	const [loading, setLoading] = useState(false);
-	const [feedback, setFeedback] = useState(() =>
-		feedbackItems.map((f) => ({ ...f, score: f.base })),
-	);
-	const [aiSuggestion, setAiSuggestion] = useState(
-		"Try to include a specific metric or outcome in your response. Quantified results make answers more impactful.",
-	);
+	const [feedback, setFeedback] = useState<InterviewFeedback | null>(null);
 	const [checked, setChecked] = useState<Record<string, boolean>>({});
-	const [micActive, setMicActive] = useState(false);
+	const [loading, setLoading] = useState(false);
 	const [toast, setToast] = useState<string | null>(null);
-	const [currentQuestion, setCurrentQuestion] = useState(0);
+	const [error, setError] = useState("");
 
 	const showToast = (msg: string) => {
 		setToast(msg);
 		setTimeout(() => setToast(null), 2500);
 	};
 
-	useSocketListener<InterviewFeedback>("interview:send_feedback", (data) => {
-		setFeedback(data.feedback.map((f) => ({ ...f, base: f.score })));
-		setAiSuggestion(data.suggestion);
-		setLoading(false);
-		setSubmitted(true);
-		showToast("AI analysis complete! See your feedback below.");
-	});
-
-	const handleSubmitAnswer = useCallback(async () => {
+	const analyzeAnswer = useCallback(async () => {
 		if (!answer.trim()) return;
-
-		if (wizardConnected) {
-			setLoading(true);
-			setSubmitted(false);
-			emit("interview:submit_answer", {
-				answer,
-				questionIndex: currentQuestion,
-				question: sampleQuestions[currentQuestion],
+		setLoading(true);
+		setError("");
+		setFeedback(null);
+		try {
+			const response = await fetch("/api/ai/interview-feedback", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					answer,
+					questionIndex,
+					question: questions[questionIndex],
+				}),
 			});
-			showToast("Answer sent for analysis...");
-		} else {
-			setLoading(true);
-			setSubmitted(false);
-			showToast("Analyzing your answer...");
-
-			try {
-				const response = await fetch("/api/ai/interview-feedback", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						answer,
-						questionIndex: currentQuestion,
-						question: sampleQuestions[currentQuestion],
-					}),
-				});
-
-				if (!response.ok) throw new Error("AI interview request failed.");
-
-				const data = (await response.json()) as InterviewApiResponse;
-				setFeedback(data.feedback.map((f) => ({ ...f, base: f.score })));
-				setAiSuggestion(data.suggestion);
-				setSubmitted(true);
-				showToast(
-					data.aiStatus === "live"
-						? "AI analysis complete! See your feedback below."
-						: "Interview feedback generated.",
-				);
-			} catch {
-				const newFeedback = feedbackItems.map((f) => ({
-					...f,
-					score: Math.min(100, f.base + Math.floor(Math.random() * 15 - 5)),
-				}));
-				setFeedback(newFeedback);
-				setAiSuggestion(
-					"Add one measurable outcome and make the answer easier to follow with a situation, action, and result sequence.",
-				);
-				setSubmitted(true);
-				showToast("Interview feedback generated.");
-			} finally {
-				setLoading(false);
+			const payload = (await response.json().catch(() => ({}))) as
+				| InterviewApiResponse
+				| { message?: string };
+			if (!response.ok || !("feedback" in payload)) {
+				throw new Error(payload.message ?? "AI feedback is unavailable.");
 			}
-		}
-	}, [answer, wizardConnected, emit, currentQuestion]);
 
-	const toggleCheck = (id: string) => {
-		setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
-	};
-
-	const toggleMic = () => {
-		setMicActive((prev) => !prev);
-		if (!micActive) {
-			showToast("Mic activated (simulated) — speak your answer.");
-		} else {
-			showToast("Mic deactivated.");
+			setFeedback(payload);
+			showToast("AI feedback ready.");
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : "AI feedback is unavailable.",
+			);
+			showToast("AI feedback is unavailable.");
+		} finally {
+			setLoading(false);
 		}
-	};
+	}, [answer, questionIndex]);
 
 	const nextQuestion = () => {
-		setCurrentQuestion((prev) => (prev + 1) % sampleQuestions.length);
+		setQuestionIndex((prev) => (prev + 1) % questions.length);
 		setAnswer("");
-		setSubmitted(false);
-		setLoading(false);
-		setFeedback(feedbackItems.map((f) => ({ ...f, score: f.base })));
-		setAiSuggestion(
-			"Try to include a specific metric or outcome in your response. Quantified results make answers more impactful.",
-		);
+		setFeedback(null);
+		setError("");
 	};
 
 	const checkedCount = Object.values(checked).filter(Boolean).length;
@@ -152,20 +89,13 @@ export default function InterviewPage() {
 			style={{
 				backgroundColor: "#0f0518",
 				backgroundImage:
-					"radial-gradient(circle at 10% 20%, rgba(88, 28, 135, 0.4) 0%, transparent 40%), radial-gradient(circle at 90% 60%, rgba(126, 34, 206, 0.3) 0%, transparent 40%), radial-gradient(circle at 50% 120%, rgba(168, 85, 247, 0.2) 0%, transparent 50%)",
+					"radial-gradient(circle at 10% 20%, rgba(88, 28, 135, 0.4) 0%, transparent 40%), radial-gradient(circle at 90% 60%, rgba(6, 182, 212, 0.16) 0%, transparent 38%), radial-gradient(circle at 50% 120%, rgba(168, 85, 247, 0.18) 0%, transparent 50%)",
 				backgroundAttachment: "fixed",
 			}}
 		>
 			{toast && (
 				<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-xl bg-purple-900/90 border border-purple-500/40 backdrop-blur-xl text-white text-sm font-medium shadow-[0_0_30px_rgba(168,85,247,0.3)]">
 					{toast}
-				</div>
-			)}
-
-			{wizardConnected && (
-				<div className="fixed top-2 right-4 z-[100] px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-medium flex items-center gap-1.5">
-					<span className="size-2 rounded-full bg-green-400 animate-pulse" />
-					Advisor online
 				</div>
 			)}
 
@@ -179,19 +109,19 @@ export default function InterviewPage() {
 								Interview Practice
 							</h1>
 							<p className="text-slate-400 text-lg">
-								Practice answering interview questions and get instant AI
-								feedback.
+								Practice written answers and get AI feedback tied to the
+								question.
 							</p>
 						</div>
 
-						<div className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-6 md:p-8">
+						<section className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-6 md:p-8">
 							<div className="flex items-center justify-between mb-6">
 								<div className="flex items-center gap-3">
 									<span className="material-symbols-outlined text-primary-dark">
 										quiz
 									</span>
 									<span className="text-sm text-slate-500">
-										Question {currentQuestion + 1} of {sampleQuestions.length}
+										Question {questionIndex + 1} of {questions.length}
 									</span>
 								</div>
 								<button
@@ -205,31 +135,28 @@ export default function InterviewPage() {
 								</button>
 							</div>
 
-							<div className="mb-6 p-5 rounded-xl bg-gradient-to-r from-purple-900/30 to-indigo-900/20 border border-purple-500/20">
+							<div className="mb-6 p-5 rounded-xl bg-gradient-to-r from-purple-900/30 to-cyan-900/20 border border-purple-500/20">
 								<p className="text-white text-lg font-bold leading-relaxed">
-									&ldquo;{sampleQuestions[currentQuestion]}&rdquo;
+									&ldquo;{questions[questionIndex]}&rdquo;
 								</p>
 							</div>
 
 							<textarea
 								value={answer}
-								onChange={(e) => setAnswer(e.target.value)}
-								placeholder="Type your answer here... (or use the mic to record)"
+								onChange={(event) => setAnswer(event.target.value)}
+								placeholder="Type your answer here..."
 								className="w-full rounded-lg bg-white/5 border border-white/10 text-white p-4 h-36 focus:outline-none focus:border-primary-dark/50 focus:bg-white/10 transition-all resize-none text-sm leading-relaxed placeholder:text-slate-600"
 							/>
 
-							<div className="flex items-center justify-between mt-4">
+							{error && (
+								<div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+									{error}
+								</div>
+							)}
+
+							<div className="flex justify-end mt-4">
 								<button
-									onClick={toggleMic}
-									className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all border ${micActive ? "bg-red-500/20 border-red-500/60 text-red-400 shadow-[0_0_15px_rgba(248,113,113,0.2)]" : "bg-white/5 border-white/10 text-slate-400 hover:border-primary-dark/40"}`}
-								>
-									<span className="material-symbols-outlined text-lg">
-										{micActive ? "mic" : "mic_off"}
-									</span>
-									{micActive ? "Recording..." : "Use Mic"}
-								</button>
-								<button
-									onClick={handleSubmitAnswer}
+									onClick={analyzeAnswer}
 									disabled={!answer.trim() || loading}
 									className="px-6 py-2.5 rounded-lg bg-primary hover:bg-purple-500 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(168,85,247,0.25)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
 								>
@@ -250,26 +177,10 @@ export default function InterviewPage() {
 									)}
 								</button>
 							</div>
-						</div>
+						</section>
 
-						{loading && !submitted && (
-							<div className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-6 md:p-8">
-								<div className="flex flex-col items-center justify-center py-8">
-									<span className="material-symbols-outlined text-5xl text-primary-dark animate-spin mb-4">
-										progress_activity
-									</span>
-									<p className="text-white text-lg font-bold mb-2">
-										Analyzing your answer...
-									</p>
-									<p className="text-slate-400 text-sm">
-										Preparing your feedback
-									</p>
-								</div>
-							</div>
-						)}
-
-						{submitted && !loading && (
-							<div className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-6 md:p-8">
+						{feedback && (
+							<section className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-6 md:p-8">
 								<h2 className="text-white text-xl font-bold flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
 									<span className="material-symbols-outlined text-primary-dark">
 										insights
@@ -277,54 +188,48 @@ export default function InterviewPage() {
 									AI Feedback
 								</h2>
 								<div className="space-y-5">
-									{feedback.map((f) => (
-										<div key={f.id}>
+									{feedback.feedback.map((item) => (
+										<div key={item.id}>
 											<div className="flex justify-between items-center mb-2">
 												<span className="text-sm font-medium text-slate-300">
-													{f.label}
+													{item.label}
 												</span>
 												<span
-													className={`text-sm font-bold ${f.score >= 80 ? "text-green-400" : f.score >= 60 ? "text-amber-400" : "text-red-400"}`}
+													className={`text-sm font-bold ${item.score >= 80 ? "text-green-400" : item.score >= 60 ? "text-amber-400" : "text-red-400"}`}
 												>
-													{f.score}%
+													{item.score}%
 												</span>
 											</div>
 											<div className="w-full bg-slate-800/50 rounded-full h-2.5 overflow-hidden">
 												<div
-													className="h-2.5 rounded-full transition-all duration-1000 ease-out"
-													style={{
-														width: `${f.score}%`,
-														background:
-															f.score >= 80
-																? "linear-gradient(90deg, #22c55e, #4ade80)"
-																: f.score >= 60
-																	? "linear-gradient(90deg, #f59e0b, #fbbf24)"
-																	: "linear-gradient(90deg, #ef4444, #f87171)",
-													}}
-												></div>
+													className="h-2.5 rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-purple-600 to-cyan-500"
+													style={{ width: `${item.score}%` }}
+												/>
 											</div>
 										</div>
 									))}
 								</div>
-								<div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-purple-900/30 to-indigo-900/20 border border-purple-500/20">
+								<div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-purple-900/30 to-cyan-900/20 border border-purple-500/20">
 									<div className="flex items-start gap-3">
 										<span className="material-symbols-outlined text-primary-dark">
 											tips_and_updates
 										</span>
 										<div>
 											<p className="text-sm font-bold text-white mb-1">
-												AI Suggestion
+												Suggestion
 											</p>
-											<p className="text-sm text-slate-300">{aiSuggestion}</p>
+											<p className="text-sm text-slate-300">
+												{feedback.suggestion}
+											</p>
 										</div>
 									</div>
 								</div>
-							</div>
+							</section>
 						)}
 					</div>
 
-					<div className="lg:col-span-4 flex flex-col gap-6">
-						<div className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-5 sticky top-28">
+					<aside className="lg:col-span-4 flex flex-col gap-6">
+						<section className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-5 sticky top-28">
 							<div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
 								<h2 className="text-white text-base font-bold flex items-center gap-2">
 									<span className="material-symbols-outlined text-primary-dark">
@@ -339,54 +244,29 @@ export default function InterviewPage() {
 							<div className="space-y-2.5">
 								{checklistItems.map((item) => (
 									<button
-										key={item.id}
-										onClick={() => toggleCheck(item.id)}
+										key={item}
+										onClick={() =>
+											setChecked((prev) => ({ ...prev, [item]: !prev[item] }))
+										}
 										className="w-full flex items-center gap-3 p-2.5 rounded-lg text-left hover:bg-white/5 transition-all group"
 									>
 										<span
-											className={`material-symbols-outlined text-lg flex-shrink-0 transition-all ${checked[item.id] ? "text-green-400" : "text-slate-600 group-hover:text-slate-400"}`}
+											className={`material-symbols-outlined text-lg flex-shrink-0 ${checked[item] ? "text-green-400" : "text-slate-600 group-hover:text-slate-400"}`}
 										>
-											{checked[item.id]
+											{checked[item]
 												? "check_circle"
 												: "radio_button_unchecked"}
 										</span>
 										<span
-											className={`text-sm transition-all ${checked[item.id] ? "text-slate-500 line-through" : "text-slate-300 group-hover:text-white"}`}
+											className={`text-sm ${checked[item] ? "text-slate-500 line-through" : "text-slate-300 group-hover:text-white"}`}
 										>
-											{item.label}
+											{item}
 										</span>
 									</button>
 								))}
 							</div>
-						</div>
-
-						<div className="glass-panel rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-5">
-							<h2 className="text-white text-base font-bold flex items-center gap-2 mb-4 border-b border-white/5 pb-3">
-								<span className="material-symbols-outlined text-primary-dark">
-									schedule
-								</span>
-								Quick Tips
-							</h2>
-							<ul className="space-y-3">
-								{[
-									"Use the STAR method",
-									"Keep responses under 2 minutes",
-									"Include measurable results",
-									"Practice with the mic feature",
-								].map((tip, i) => (
-									<li
-										key={i}
-										className="flex items-start gap-2 text-sm text-slate-400"
-									>
-										<span className="material-symbols-outlined text-lg text-primary-dark flex-shrink-0">
-											check_small
-										</span>
-										{tip}
-									</li>
-								))}
-							</ul>
-						</div>
-					</div>
+						</section>
+					</aside>
 				</div>
 			</div>
 		</div>
