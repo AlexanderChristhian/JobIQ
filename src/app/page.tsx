@@ -90,7 +90,7 @@ export default function DashboardPage() {
 				payload.aiStatus === "live"
 					? `Personalized with ${payload.model ?? "AI"}`
 					: payload.message ??
-							"Upload your CV to generate personalized recommendations.",
+					"Upload your CV to generate personalized recommendations.",
 			);
 			showToast(
 				payload.aiStatus === "live"
@@ -209,13 +209,6 @@ export default function DashboardPage() {
 			{noteToast && (
 				<div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] px-5 py-2.5 rounded-xl bg-green-900/90 border border-green-500/30 backdrop-blur-xl text-white text-sm font-medium shadow-[0_0_20px_rgba(74,222,128,0.2)]">
 					{noteToast}
-				</div>
-			)}
-
-			{wizardConnected && (
-				<div className="fixed top-2 right-4 z-[100] px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-medium flex items-center gap-1.5">
-					<span className="size-2 rounded-full bg-green-400 animate-pulse" />
-					Advisor online
 				</div>
 			)}
 
@@ -528,3 +521,4 @@ export default function DashboardPage() {
 		</div>
 	);
 }
+

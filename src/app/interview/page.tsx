@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Header from "@/components/header";
+import { useSocket, useSocketListener } from "@/lib/SocketProvider";
 import type { InterviewFeedback } from "@/lib/wizard-types";
 
 interface InterviewApiResponse extends InterviewFeedback {
@@ -27,6 +28,7 @@ const checklistItems = [
 ];
 
 export default function InterviewPage() {
+	const { wizardConnected, emit } = useSocket();
 	const [questionIndex, setQuestionIndex] = useState(0);
 	const [answer, setAnswer] = useState("");
 	const [feedback, setFeedback] = useState<InterviewFeedback | null>(null);
@@ -40,11 +42,31 @@ export default function InterviewPage() {
 		setTimeout(() => setToast(null), 2500);
 	};
 
+	// Listen for wizard feedback via Socket.IO
+	useSocketListener<InterviewFeedback>("interview:send_feedback", (data) => {
+		setFeedback(data);
+		setLoading(false);
+		showToast("Feedback received from advisor.");
+	});
+
 	const analyzeAnswer = useCallback(async () => {
 		if (!answer.trim()) return;
 		setLoading(true);
 		setError("");
 		setFeedback(null);
+
+		// When wizard is connected, send via socket and wait for response
+		if (wizardConnected) {
+			emit("interview:submit_answer", {
+				answer,
+				questionIndex,
+				question: questions[questionIndex],
+			});
+			showToast("Answer sent to advisor for review...");
+			return; // loading stays true until wizard responds via socket listener
+		}
+
+		// Fallback to AI API when no wizard
 		try {
 			const response = await fetch("/api/ai/interview-feedback", {
 				method: "POST",
@@ -72,7 +94,7 @@ export default function InterviewPage() {
 		} finally {
 			setLoading(false);
 		}
-	}, [answer, questionIndex]);
+	}, [answer, questionIndex, wizardConnected, emit]);
 
 	const nextQuestion = () => {
 		setQuestionIndex((prev) => (prev + 1) % questions.length);
@@ -96,6 +118,13 @@ export default function InterviewPage() {
 			{toast && (
 				<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-xl bg-purple-900/90 border border-purple-500/40 backdrop-blur-xl text-white text-sm font-medium shadow-[0_0_30px_rgba(168,85,247,0.3)]">
 					{toast}
+				</div>
+			)}
+
+			{wizardConnected && (
+				<div className="fixed top-2 right-4 z-[100] px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-medium flex items-center gap-1.5">
+					<span className="size-2 rounded-full bg-green-400 animate-pulse" />
+					Advisor online
 				</div>
 			)}
 
