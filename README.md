@@ -24,6 +24,19 @@ npm run dev
 
 Open http://localhost:3000
 
+## AI Setup
+
+The app now uses server-side AI endpoints for recommendations, interview feedback, and tracker suggestions. Without an API key it falls back to local mock AI so the prototype still works.
+
+Create `src/.env.local`:
+
+```bash
+OPENAI_API_KEY=your_api_key_here
+OPENAI_MODEL=gpt-4o-mini
+```
+
+`OPENAI_MODEL` is optional. The default is `gpt-4o-mini`.
+
 ## Production Build
 
 ```bash

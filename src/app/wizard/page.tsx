@@ -571,7 +571,7 @@ export default function WizardPage() {
 													updateJob(index, "company", e.target.value)
 												}
 												className="w-full rounded-lg bg-slate-800 border border-slate-700 text-white p-2 text-sm focus:outline-none focus:border-purple-500/50"
-												placeholder="TechCorp"
+												placeholder="Company name"
 											/>
 										</div>
 										<div>
@@ -683,7 +683,7 @@ export default function WizardPage() {
 												)
 											}
 											className="w-full rounded-lg bg-slate-800 border border-slate-700 text-white p-2 text-sm focus:outline-none focus:border-purple-500/50"
-											placeholder="Figma, React, TypeScript"
+											placeholder="Skill, tool, keyword"
 										/>
 									</div>
 									<div>

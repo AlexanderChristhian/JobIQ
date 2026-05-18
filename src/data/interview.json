@@ -1,42 +1,12 @@
 {
 	"session": {
-		"role": "Product Manager",
-		"company": "TechCorp",
-		"question": "Can you describe a time when you had to prioritize features for a product launch under tight deadlines? How did you decide what to cut?",
-		"confidenceScore": 88,
-		"clarityScore": 72,
-		"keywordsDetected": [
-			{ "label": "Agile", "type": "strong" },
-			{ "label": "Stakeholders", "type": "strong" },
-			{ "label": "ROI", "type": "strong" },
-			{ "label": "Scrum", "type": "weak" }
-		],
-		"checklist": [
-			{
-				"label": "Review Product Roadmap",
-				"description": "Based on job description requirements",
-				"done": true
-			},
-			{
-				"label": "Research Competitors",
-				"description": "Focus on TechCorp's main rivals",
-				"done": true
-			},
-			{
-				"label": "Prepare Behavioral Stories",
-				"description": "STAR method examples for leadership",
-				"done": false
-			},
-			{
-				"label": "Technical Metrics Review",
-				"description": "Review DAU, MAU, and retention formulas",
-				"done": false
-			},
-			{
-				"label": "Ask AI about Company Culture",
-				"description": "Prepare questions for the interviewer",
-				"done": false
-			}
-		]
+		"role": "",
+		"company": "",
+		"question": "Tell me about yourself.",
+		"confidenceScore": 0,
+		"clarityScore": 0,
+		"keywordsDetected": [],
+		"checklist": []
 	}
 }
+

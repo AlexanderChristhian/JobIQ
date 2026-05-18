@@ -42,19 +42,21 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 	const [connected, setConnected] = useState(false);
 	const [wizardConnected, setWizardConnected] = useState(false);
 	const socketRef = useRef<Socket | null>(null);
-
-	if (!socketRef.current && typeof window !== "undefined") {
-		socketRef.current = createSocket();
-	}
+	const pendingListenersRef = useRef<
+		Array<{ event: string; handler: (...args: unknown[]) => void }>
+	>([]);
 
 	useEffect(() => {
-		const socket = socketRef.current;
-		if (!socket) return;
+		const socket = createSocket();
+		socketRef.current = socket;
 
 		socket.on("connect", () => setConnected(true));
 		socket.on("disconnect", () => setConnected(false));
 		socket.on("wizard:connected", () => setWizardConnected(true));
 		socket.on("wizard:disconnected", () => setWizardConnected(false));
+		pendingListenersRef.current.forEach(({ event, handler }) => {
+			socket.on(event, handler);
+		});
 
 		return () => {
 			socket.off("connect");
@@ -72,13 +74,21 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
 	const on = useCallback(
 		(event: string, handler: (...args: unknown[]) => void) => {
-			socketRef.current?.on(event, handler);
+			if (socketRef.current) {
+				socketRef.current.on(event, handler);
+				return;
+			}
+			pendingListenersRef.current.push({ event, handler });
 		},
 		[],
 	);
 
 	const off = useCallback(
 		(event: string, handler: (...args: unknown[]) => void) => {
+			pendingListenersRef.current = pendingListenersRef.current.filter(
+				(listener) =>
+					listener.event !== event || listener.handler !== handler,
+			);
 			socketRef.current?.off(event, handler);
 		},
 		[],
@@ -103,7 +113,10 @@ export function useSocketListener<T>(
 ) {
 	const { on, off } = useSocket();
 	const handlerRef = useRef(handler);
-	handlerRef.current = handler;
+
+	useEffect(() => {
+		handlerRef.current = handler;
+	}, [handler]);
 
 	useEffect(() => {
 		const stableHandler = (...args: unknown[]) => {

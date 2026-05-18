@@ -1,12 +1,49 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import data from "@/data/recommendations.json";
+import Link from "next/link";
+import { useState, useEffect, useCallback } from "react";
 import { useSocket, useSocketListener } from "@/lib/SocketProvider";
 import type { RecommendationJob } from "@/lib/wizard-types";
 import Header from "@/components/header";
 
-const initialJobs = data.jobs;
+const initialJobs: RecommendationJob[] = [];
+
+type AiStatus = "static" | "loading" | "live" | "mock" | "wizard";
+
+interface RecommendationsApiResponse {
+	jobs: RecommendationJob[];
+	aiStatus?: "live" | "mock";
+	model?: string;
+	message?: string;
+}
+
+const confidenceStyles: Record<RecommendationJob["confidenceBand"], string> = {
+	high: "text-green-400 bg-green-500/10 border-green-500/20",
+	medium: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+	low: "text-red-400 bg-red-500/10 border-red-500/20",
+};
+
+const aiStatusLabels: Record<AiStatus, string> = {
+	static: "Ready",
+	loading: "Analyzing",
+	live: "AI personalized",
+	mock: "Needs CV",
+	wizard: "Advisor review",
+};
+
+function formatRiskFlag(flag: string) {
+	return flag
+		.split("-")
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join(" ");
+}
+
+function buildJobSearchUrl(job: RecommendationJob) {
+	const query = [job.title, job.location, ...job.techStack.slice(0, 3), "jobs"]
+		.filter(Boolean)
+		.join(" ");
+	return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}
 
 export default function DashboardPage() {
 	const { wizardConnected, emit } = useSocket();
@@ -19,27 +56,85 @@ export default function DashboardPage() {
 	const [toast, setToast] = useState<string | null>(null);
 	const [noteToast, setNoteToast] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
-	const [requestedOnce, setRequestedOnce] = useState(false);
+	const [requestedMode, setRequestedMode] = useState<"none" | "ai" | "wizard">(
+		"none",
+	);
+	const [aiStatus, setAiStatus] = useState<AiStatus>("static");
+	const [aiMessage, setAiMessage] = useState(
+		"Upload your CV to generate recommendations.",
+	);
 
-	const showToast = (msg: string) => {
+	const showToast = useCallback((msg: string) => {
 		setToast(msg);
 		setTimeout(() => setToast(null), 2500);
-	};
+	}, []);
+
+	const requestAiRecommendations = useCallback(async () => {
+		setLoading(true);
+		setAiStatus("loading");
+		setAiMessage("Analyzing profile, preferences, and feedback...");
+
+		try {
+			const response = await fetch("/api/ai/recommendations", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ feedback, notes }),
+			});
+
+			if (!response.ok) throw new Error("AI request failed.");
+
+			const payload = (await response.json()) as RecommendationsApiResponse;
+			setJobs(payload.jobs);
+			setAiStatus(payload.aiStatus === "live" ? "live" : "mock");
+			setAiMessage(
+				payload.aiStatus === "live"
+					? `Personalized with ${payload.model ?? "AI"}`
+					: payload.message ??
+							"Upload your CV to generate personalized recommendations.",
+			);
+			showToast(
+				payload.aiStatus === "live"
+					? "Recommendations personalized."
+					: payload.message ?? "Upload your CV to continue.",
+			);
+		} catch (error) {
+			setJobs(initialJobs);
+			setAiStatus("mock");
+			setAiMessage(
+				error instanceof Error
+					? "Unable to refresh recommendations right now."
+					: "Upload your CV to generate recommendations.",
+			);
+			showToast("Recommendations are unavailable.");
+		} finally {
+			setLoading(false);
+		}
+	}, [feedback, notes, showToast]);
 
 	useEffect(() => {
-		if (wizardConnected && !requestedOnce) {
-			setRequestedOnce(true);
+		if (wizardConnected && requestedMode !== "wizard") {
+			setRequestedMode("wizard");
 			setLoading(true);
+			setAiStatus("loading");
+			setAiMessage("Preparing updated recommendations...");
 			emit("recommendations:request", { timestamp: Date.now() });
+			return;
 		}
-	}, [wizardConnected, emit, requestedOnce]);
+
+		if (!wizardConnected && requestedMode === "none") {
+			setRequestedMode("ai");
+			void requestAiRecommendations();
+		}
+	}, [wizardConnected, emit, requestedMode, requestAiRecommendations]);
 
 	useSocketListener<{ jobs: RecommendationJob[] }>(
 		"recommendations:send_results",
 		(data) => {
 			setJobs(data.jobs);
 			setLoading(false);
-			showToast("AI recommendations received!");
+			setAiStatus("wizard");
+			setAiMessage("Recommendations reviewed and updated.");
+			showToast("Recommendations updated.");
 		},
 	);
 
@@ -93,7 +188,7 @@ export default function DashboardPage() {
 			{wizardConnected && (
 				<div className="fixed top-2 right-4 z-[100] px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-medium flex items-center gap-1.5">
 					<span className="size-2 rounded-full bg-green-400 animate-pulse" />
-					Wizard Connected
+					Advisor online
 				</div>
 			)}
 
@@ -107,11 +202,33 @@ export default function DashboardPage() {
 								AI Job Recommendations
 							</h1>
 							<p className="text-slate-400 text-lg">
-								Curated for you based on your profile. Tap thumbs up/down to
-								train your AI.
+								Role targets and search queries based on your CV review and job
+								preferences.
 							</p>
 						</div>
-						<div className="flex items-center gap-3">
+						<div className="flex flex-wrap items-center gap-3">
+							<div
+								className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium ${aiStatus === "live" || aiStatus === "wizard" ? "bg-green-500/10 border-green-500/30 text-green-400" : aiStatus === "loading" ? "bg-purple-500/10 border-purple-500/30 text-purple-300" : "bg-white/5 border-white/10 text-slate-400"}`}
+								title={aiMessage}
+							>
+								<span
+									className={`size-2 rounded-full ${aiStatus === "loading" ? "bg-purple-400 animate-pulse" : aiStatus === "live" || aiStatus === "wizard" ? "bg-green-400" : "bg-slate-500"}`}
+								/>
+								{aiStatusLabels[aiStatus]}
+							</div>
+							<button
+								onClick={() => {
+									setRequestedMode("ai");
+									void requestAiRecommendations();
+								}}
+								disabled={loading}
+								className="flex items-center gap-2 rounded-lg h-10 px-4 bg-primary hover:bg-purple-500 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(168,85,247,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								<span className="material-symbols-outlined text-lg">
+									auto_awesome
+								</span>
+								Refresh AI
+							</button>
 							<span className="text-sm text-slate-500">Sort by</span>
 							<select className="rounded-lg h-10 px-4 bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-primary-dark focus:ring-1 focus:ring-primary-dark/30 cursor-pointer">
 								<option>Match Score</option>
@@ -153,14 +270,24 @@ export default function DashboardPage() {
 							{jobs.length === 0 && (
 								<div className="lg:col-span-2 glass-panel rounded-xl p-16 text-center">
 									<span className="material-symbols-outlined text-6xl text-slate-600 mb-4">
-										sentiment_dissatisfied
+										upload_file
 									</span>
-									<h3 className="text-xl font-bold text-slate-400">
-										No more recommendations
+									<h3 className="text-xl font-bold text-slate-300">
+										No recommendations yet
 									</h3>
 									<p className="text-slate-500 mt-2">
-										Check back later or update your profile for new matches.
+										Upload your CV on the profile page to generate personalized
+										role recommendations.
 									</p>
+									<Link
+										href="/profile"
+										className="mt-6 inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-primary hover:bg-purple-500 text-white text-sm font-bold transition-all"
+									>
+										<span className="material-symbols-outlined text-lg">
+											arrow_forward
+										</span>
+										Go to CV review
+									</Link>
 								</div>
 							)}
 
@@ -174,33 +301,97 @@ export default function DashboardPage() {
 										<div className="flex justify-between items-start mb-4">
 											<div className="flex items-start gap-4 flex-1 min-w-0">
 												<div className="size-14 rounded-xl bg-gradient-to-br from-purple-600/30 to-slate-800/30 border border-white/10 flex items-center justify-center flex-shrink-0 text-xl font-bold text-primary-dark shadow-[0_0_10px_rgba(147,51,234,0.2)]">
-													{job.company[0]}
+													{job.title[0]}
 												</div>
 												<div className="min-w-0">
 													<h3 className="text-lg font-bold text-white leading-snug tracking-wide">
 														{job.title}
 													</h3>
 													<p className="text-slate-400 text-sm mt-0.5">
-														{job.company} • {job.location}
+														{job.workModel} &bull; {job.location}
 													</p>
 													<div className="flex items-center gap-2 mt-2 flex-wrap">
 														<span className="text-xs font-bold text-green-400 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20 shadow-[0_0_8px_rgba(74,222,128,0.1)]">
 															{job.matchScore}% Match
 														</span>
+														<span
+															className={`text-xs font-bold px-2.5 py-1 rounded-full border ${confidenceStyles[job.confidenceBand]}`}
+														>
+															{job.confidenceBand} confidence
+														</span>
+														<span
+															className={`text-xs font-medium px-2.5 py-1 rounded-full border ${job.verified ? "text-cyan-300 bg-cyan-500/10 border-cyan-500/20" : "text-amber-300 bg-amber-500/10 border-amber-500/20"}`}
+														>
+															{job.source === "CV analysis"
+																? "Search target"
+																: job.verified
+																	? "Verified"
+																	: "Needs review"}
+														</span>
 														<span className="text-xs text-slate-500">
 															{job.salaryRange}
 														</span>
 														<span className="text-xs text-slate-500">
-															{job.postedAt}
+															{job.source} &bull; {job.postedAt}
 														</span>
+														{job.riskFlags.map((flag) => (
+															<span
+																key={flag}
+																className="text-xs font-medium text-red-300 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20"
+															>
+																{formatRiskFlag(flag)}
+															</span>
+														))}
 													</div>
 												</div>
 											</div>
 										</div>
 
-										<p className="text-sm text-slate-400 leading-relaxed mb-4 line-clamp-2">
+										<p className="text-sm text-slate-200 leading-relaxed mb-2">
+											{job.summary}
+										</p>
+										<p className="text-sm text-slate-500 leading-relaxed mb-4 line-clamp-2">
 											{job.description}
 										</p>
+
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+											<div className="rounded-lg bg-green-500/5 border border-green-500/10 p-3">
+												<p className="text-xs font-bold text-green-300 mb-2">
+													Why it matches
+												</p>
+												<ul className="space-y-1.5">
+													{job.whyMatches.slice(0, 3).map((reason) => (
+														<li
+															key={reason}
+															className="flex gap-2 text-xs text-slate-300 leading-relaxed"
+														>
+															<span className="material-symbols-outlined text-[15px] text-green-400 mt-0.5">
+																check_small
+															</span>
+															{reason}
+														</li>
+													))}
+												</ul>
+											</div>
+											<div className="rounded-lg bg-amber-500/5 border border-amber-500/10 p-3">
+												<p className="text-xs font-bold text-amber-300 mb-2">
+													Potential gaps
+												</p>
+												<ul className="space-y-1.5">
+													{job.potentialGaps.slice(0, 3).map((gap) => (
+														<li
+															key={gap}
+															className="flex gap-2 text-xs text-slate-300 leading-relaxed"
+														>
+															<span className="material-symbols-outlined text-[15px] text-amber-400 mt-0.5">
+																error
+															</span>
+															{gap}
+														</li>
+													))}
+												</ul>
+											</div>
+										</div>
 
 										<div className="flex flex-wrap gap-1.5 mb-5">
 											{job.techStack.slice(0, 4).map((skill, i) => (
@@ -260,17 +451,12 @@ export default function DashboardPage() {
 													{savedNotes[job.id] ? "Saved" : "Note"}
 												</button>
 												<a
-													href="#"
-													onClick={(e) => {
-														e.preventDefault();
-														showToast(
-															"Opening external application page for " +
-																job.title,
-														);
-													}}
+													href={buildJobSearchUrl(job)}
+													target="_blank"
+													rel="noreferrer"
 													className="px-4 py-2 rounded-lg bg-primary hover:bg-purple-500 text-white text-xs font-bold transition-all shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:shadow-[0_0_25px_rgba(168,85,247,0.4)]"
 												>
-													Apply Externally
+													Search Jobs
 												</a>
 											</div>
 										</div>

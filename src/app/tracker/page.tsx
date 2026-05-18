@@ -1,10 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import data from "@/data/tracker.json";
 import Header from "@/components/header";
 import { useSocket, useSocketListener } from "@/lib/SocketProvider";
 import type { TrackerSuggestion } from "@/lib/wizard-types";
+
+interface TrackerSuggestionApiResponse extends TrackerSuggestion {
+	aiStatus?: "live" | "mock";
+	model?: string;
+	message?: string;
+}
 
 type Stage = "applied" | "screening" | "interviewing" | "offer";
 
@@ -22,24 +27,16 @@ const stageColors: Record<Stage, string> = {
 	offer: "bg-green-500/20 text-green-400 border-green-500/30",
 };
 
-function flattenApplications(columns: typeof data.columns) {
-	const result: Array<{
-		id: string;
-		title: string;
-		company: string;
-		location: string;
-		timeAgo: string;
-		aiSuggestion?: string;
-		actionLabel?: string;
-		interviewers?: number;
-		stage: Stage;
-	}> = [];
-	for (const [stage, items] of Object.entries(columns)) {
-		for (const item of items) {
-			result.push({ ...item, stage: stage as Stage });
-		}
-	}
-	return result;
+interface ApplicationItem {
+	id: string;
+	title: string;
+	company: string;
+	location: string;
+	timeAgo: string;
+	aiSuggestion?: string;
+	actionLabel?: string;
+	interviewers?: number;
+	stage: Stage;
 }
 
 export default function TrackerPage() {
@@ -47,9 +44,7 @@ export default function TrackerPage() {
 	const [expanded, setExpanded] = useState<string | null>(null);
 	const [showForm, setShowForm] = useState(false);
 	const [toast, setToast] = useState<string | null>(null);
-	const [applications, setApplications] = useState(() =>
-		flattenApplications(data.columns),
-	);
+	const [applications, setApplications] = useState<ApplicationItem[]>([]);
 	const [newApp, setNewApp] = useState({
 		company: "",
 		role: "",
@@ -96,7 +91,7 @@ export default function TrackerPage() {
 		showToast("Application added to tracker!");
 	};
 
-	const handleGetSuggestion = (app: (typeof applications)[0]) => {
+	const handleGetSuggestion = async (app: (typeof applications)[0]) => {
 		if (wizardConnected) {
 			setLoadingSuggestion(app.id);
 			emit("tracker:request_suggestion", {
@@ -106,27 +101,51 @@ export default function TrackerPage() {
 				stage: app.stage,
 			});
 			showToast("Requesting AI suggestion...");
-		} else if (!app.aiSuggestion) {
-			const fallbacks = [
-				"Review your portfolio case studies for this role.",
-				"Prepare questions about team culture and growth opportunities.",
-				"Send a follow-up email emphasizing your relevant experience.",
-				"Research the company's recent product updates before the interview.",
-			];
+			return;
+		}
+
+		setLoadingSuggestion(app.id);
+		try {
+			const response = await fetch("/api/ai/tracker-suggestion", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					cardId: app.id,
+					title: app.title,
+					company: app.company,
+					stage: app.stage,
+					currentSuggestion: app.aiSuggestion ?? "",
+				}),
+			});
+
+			if (!response.ok) throw new Error("AI tracker request failed.");
+
+			const data = (await response.json()) as TrackerSuggestionApiResponse;
+			setApplications((prev) =>
+				prev.map((a) =>
+					a.id === app.id ? { ...a, aiSuggestion: data.suggestion } : a,
+				),
+			);
+			showToast(
+				data.aiStatus === "live"
+					? "AI suggestion generated!"
+					: "Suggestion generated.",
+			);
+		} catch {
 			const suggestion =
-				fallbacks[Math.floor(Math.random() * fallbacks.length)];
+				"Send a concise follow-up that restates your fit and asks about the next step.";
 			setApplications((prev) =>
 				prev.map((a) =>
 					a.id === app.id ? { ...a, aiSuggestion: suggestion } : a,
 				),
 			);
-			showToast("AI suggestion generated!");
-		} else {
-			showToast("AI suggestion already available for this application.");
+			showToast("Suggestion generated.");
+		} finally {
+			setLoadingSuggestion(null);
 		}
 	};
 
-	const handleReminder = (id: string) => {
+	const handleReminder = () => {
 		showToast(
 			"Reminder set! We'll notify you to follow up on this application.",
 		);
@@ -151,11 +170,11 @@ export default function TrackerPage() {
 			{wizardConnected && (
 				<div className="fixed top-2 right-4 z-[100] px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-medium flex items-center gap-1.5">
 					<span className="size-2 rounded-full bg-green-400 animate-pulse" />
-					Wizard Connected
+					Advisor online
 				</div>
 			)}
 
-			<Header activePage={null} />
+			<Header activePage="tracker" />
 
 			{showForm && (
 				<div
@@ -184,7 +203,7 @@ export default function TrackerPage() {
 										setNewApp((prev) => ({ ...prev, company: e.target.value }))
 									}
 									className="w-full rounded-lg h-12 bg-white/5 border border-white/10 text-white px-4 focus:outline-none focus:border-primary-dark/50 focus:bg-white/10 transition-all"
-									placeholder="e.g. Google"
+									placeholder="Company name"
 								/>
 							</div>
 							<div>
@@ -198,7 +217,7 @@ export default function TrackerPage() {
 										setNewApp((prev) => ({ ...prev, role: e.target.value }))
 									}
 									className="w-full rounded-lg h-12 bg-white/5 border border-white/10 text-white px-4 focus:outline-none focus:border-primary-dark/50 focus:bg-white/10 transition-all"
-									placeholder="e.g. Product Manager"
+									placeholder="Role title"
 								/>
 							</div>
 							<div>
@@ -262,6 +281,20 @@ export default function TrackerPage() {
 					</div>
 
 					<div className="grid grid-cols-1 gap-4">
+						{applications.length === 0 && (
+							<div className="glass-panel rounded-xl p-12 text-center border border-white/10">
+								<span className="material-symbols-outlined text-5xl text-slate-600 mb-4">
+									track_changes
+								</span>
+								<h2 className="text-white text-xl font-bold">
+									No applications yet
+								</h2>
+								<p className="text-slate-500 mt-2 max-w-md mx-auto">
+									Add your first application to start tracking stages, reminders,
+									and next actions.
+								</p>
+							</div>
+						)}
 						{applications.map((app) => {
 							const isExpanded = expanded === app.id;
 							return (
@@ -335,7 +368,7 @@ export default function TrackerPage() {
 													<button
 														onClick={(e) => {
 															e.stopPropagation();
-															handleReminder(app.id);
+															handleReminder();
 														}}
 														className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/10 transition-all"
 													>

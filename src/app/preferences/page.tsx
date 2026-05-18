@@ -4,11 +4,11 @@ import { useState } from "react";
 import data from "@/data/preferences.json";
 import Header from "@/components/header";
 
-const prefData = data;
+const prefData = data.preferences;
 
 export default function PreferencesPage() {
-	const [salaryMin, setSalaryMin] = useState(prefData.salaryExpectation.min);
-	const [salaryMax, setSalaryMax] = useState(prefData.salaryExpectation.max);
+	const [salaryMin, setSalaryMin] = useState(prefData.salaryMin);
+	const [salaryMax, setSalaryMax] = useState(prefData.salaryMax);
 	const [workModels, setWorkModels] = useState<string[]>(prefData.workModel);
 	const [roles, setRoles] = useState<string[]>(prefData.desiredRoles);
 	const [keywords, setKeywords] = useState(prefData.keywords.join(", "));
@@ -62,7 +62,7 @@ export default function PreferencesPage() {
 				</div>
 			)}
 
-			<Header activePage="settings" />
+			<Header activePage="preferences" />
 
 			<div className="flex-1 flex justify-center py-8 px-4 sm:px-6 lg:px-8">
 				<div className="w-full max-w-4xl flex flex-col gap-8">

@@ -5,6 +5,12 @@ import { useSocket, useSocketListener } from "@/lib/SocketProvider";
 import type { InterviewFeedback } from "@/lib/wizard-types";
 import Header from "@/components/header";
 
+interface InterviewApiResponse extends InterviewFeedback {
+	aiStatus?: "live" | "mock";
+	model?: string;
+	message?: string;
+}
+
 const feedbackItems = [
 	{ id: "clarity", label: "Clarity", base: 75 },
 	{ id: "relevance", label: "Relevance", base: 82 },
@@ -30,7 +36,7 @@ const sampleQuestions = [
 ];
 
 export default function InterviewPage() {
-	const { connected, wizardConnected, emit } = useSocket();
+	const { wizardConnected, emit } = useSocket();
 	const [answer, setAnswer] = useState("");
 	const [submitted, setSubmitted] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -58,10 +64,10 @@ export default function InterviewPage() {
 		showToast("AI analysis complete! See your feedback below.");
 	});
 
-	const handleSubmitAnswer = useCallback(() => {
+	const handleSubmitAnswer = useCallback(async () => {
 		if (!answer.trim()) return;
 
-		if (wizardConnected || connected) {
+		if (wizardConnected) {
 			setLoading(true);
 			setSubmitted(false);
 			emit("interview:submit_answer", {
@@ -71,18 +77,48 @@ export default function InterviewPage() {
 			});
 			showToast("Answer sent for analysis...");
 		} else {
-			setSubmitted(true);
-			const newFeedback = feedback.map((f) => ({
-				...f,
-				score: Math.min(100, f.score + Math.floor(Math.random() * 15 - 5)),
-			}));
-			setTimeout(() => setFeedback(newFeedback), 800);
-			setTimeout(
-				() => showToast("AI analysis complete! See your feedback below."),
-				1200,
-			);
+			setLoading(true);
+			setSubmitted(false);
+			showToast("Analyzing your answer...");
+
+			try {
+				const response = await fetch("/api/ai/interview-feedback", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						answer,
+						questionIndex: currentQuestion,
+						question: sampleQuestions[currentQuestion],
+					}),
+				});
+
+				if (!response.ok) throw new Error("AI interview request failed.");
+
+				const data = (await response.json()) as InterviewApiResponse;
+				setFeedback(data.feedback.map((f) => ({ ...f, base: f.score })));
+				setAiSuggestion(data.suggestion);
+				setSubmitted(true);
+				showToast(
+					data.aiStatus === "live"
+						? "AI analysis complete! See your feedback below."
+						: "Interview feedback generated.",
+				);
+			} catch {
+				const newFeedback = feedbackItems.map((f) => ({
+					...f,
+					score: Math.min(100, f.base + Math.floor(Math.random() * 15 - 5)),
+				}));
+				setFeedback(newFeedback);
+				setAiSuggestion(
+					"Add one measurable outcome and make the answer easier to follow with a situation, action, and result sequence.",
+				);
+				setSubmitted(true);
+				showToast("Interview feedback generated.");
+			} finally {
+				setLoading(false);
+			}
 		}
-	}, [answer, wizardConnected, connected, emit, currentQuestion, feedback]);
+	}, [answer, wizardConnected, emit, currentQuestion]);
 
 	const toggleCheck = (id: string) => {
 		setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -129,18 +165,18 @@ export default function InterviewPage() {
 			{wizardConnected && (
 				<div className="fixed top-2 right-4 z-[100] px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-medium flex items-center gap-1.5">
 					<span className="size-2 rounded-full bg-green-400 animate-pulse" />
-					Wizard Connected
+					Advisor online
 				</div>
 			)}
 
-			<Header activePage={null} />
+			<Header activePage="interview" />
 
 			<div className="flex-1 flex justify-center py-8 px-4 sm:px-6 lg:px-8">
 				<div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8">
 					<div className="lg:col-span-8 flex flex-col gap-8">
 						<div>
 							<h1 className="text-white text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 drop-shadow-md">
-								Mock Interview
+								Interview Practice
 							</h1>
 							<p className="text-slate-400 text-lg">
 								Practice answering interview questions and get instant AI
@@ -226,8 +262,7 @@ export default function InterviewPage() {
 										Analyzing your answer...
 									</p>
 									<p className="text-slate-400 text-sm">
-										Waiting for AI feedback
-										{wizardConnected ? " (Wizard processing)" : ""}
+										Preparing your feedback
 									</p>
 								</div>
 							</div>

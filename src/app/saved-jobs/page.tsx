@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import data from "@/data/saved-jobs.json";
 import Header from "@/components/header";
+import type { SavedJobData } from "@/lib/types";
 
-const initialJobs = data.savedJobs;
+const initialJobs: SavedJobData[] = [];
 
 export default function SavedJobsPage() {
 	const [jobs, setJobs] = useState(initialJobs);
-	const [compareIds, setCompareIds] = useState<number[]>([]);
-	const [notes, setNotes] = useState<Record<number, string>>({});
-	const [savedNotes, setSavedNotes] = useState<Record<number, string>>({});
+	const [compareIds, setCompareIds] = useState<string[]>([]);
+	const [notes, setNotes] = useState<Record<string, string>>({});
+	const [savedNotes, setSavedNotes] = useState<Record<string, string>>({});
 	const [toast, setToast] = useState<string | null>(null);
 
 	const showToast = (msg: string) => {
@@ -18,7 +18,7 @@ export default function SavedJobsPage() {
 		setTimeout(() => setToast(null), 2500);
 	};
 
-	const toggleCompare = (id: number) => {
+	const toggleCompare = (id: string) => {
 		setCompareIds((prev) => {
 			if (prev.includes(id)) return prev.filter((i) => i !== id);
 			if (prev.length >= 3) {
@@ -29,13 +29,13 @@ export default function SavedJobsPage() {
 		});
 	};
 
-	const handleDelete = (id: number) => {
+	const handleDelete = (id: string) => {
 		setJobs((prev) => prev.filter((j) => j.id !== id));
 		setCompareIds((prev) => prev.filter((i) => i !== id));
 		showToast("Job removed from saved list.");
 	};
 
-	const handleSaveNote = (id: number) => {
+	const handleSaveNote = (id: string) => {
 		setSavedNotes((prev) => ({ ...prev, [id]: notes[id] || "" }));
 		showToast("Note saved!");
 	};
@@ -108,6 +108,19 @@ export default function SavedJobsPage() {
 					)}
 
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+						{jobs.length === 0 && (
+							<div className="lg:col-span-2 glass-panel rounded-xl p-12 text-center border border-white/10">
+								<span className="material-symbols-outlined text-5xl text-slate-600 mb-4">
+									bookmark
+								</span>
+								<h2 className="text-white text-xl font-bold">
+									No saved jobs yet
+								</h2>
+								<p className="text-slate-500 mt-2 max-w-md mx-auto">
+									Save jobs from your recommendations to compare them here.
+								</p>
+							</div>
+						)}
 						{jobs.map((job) => {
 							const checked = compareIds.includes(job.id);
 							return (

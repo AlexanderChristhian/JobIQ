@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
+import { AuthProvider } from "@/lib/AuthProvider";
 import { SocketProvider } from "@/lib/SocketProvider";
 import "./globals.css";
 
@@ -23,7 +24,9 @@ export default function RootLayout({
 				/>
 			</head>
 			<body className={`${manrope.className} antialiased`}>
-				<SocketProvider>{children}</SocketProvider>
+				<AuthProvider>
+					<SocketProvider>{children}</SocketProvider>
+				</AuthProvider>
 			</body>
 		</html>
 	);

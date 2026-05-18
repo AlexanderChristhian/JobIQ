@@ -1,4 +1,8 @@
+"use client";
+
 import React from "react";
+import Link from "next/link";
+import { useAuth } from "@/lib/AuthProvider";
 
 type ActivePage =
 	| "dashboard"
@@ -6,6 +10,7 @@ type ActivePage =
 	| "tracker"
 	| "jobs"
 	| "profile"
+	| "preferences"
 	| "settings"
 	| null;
 
@@ -20,14 +25,25 @@ const navItems: { label: string; href: string; page: ActivePage }[] = [
 	{ label: "Tracker", href: "/tracker", page: "tracker" },
 	{ label: "Jobs", href: "/saved-jobs", page: "jobs" },
 	{ label: "Profile", href: "/profile", page: "profile" },
+	{ label: "Preferences", href: "/preferences", page: "preferences" },
 	{ label: "Settings", href: "/settings", page: "settings" },
 ];
 
 function Header({ activePage = null, actions }: HeaderProps) {
+	const { user, logout } = useAuth();
+	const initials =
+		user?.name
+			.split(" ")
+			.filter(Boolean)
+			.slice(0, 2)
+			.map((part) => part[0])
+			.join("")
+			.toUpperCase() || "JI";
+
 	return (
 		<header className="flex items-center justify-between whitespace-nowrap border-b border-white/10 glass-panel px-10 py-3 sticky top-0 z-50">
 			<div className="flex items-center gap-8">
-				<a href="/" className="flex items-center gap-4 text-white">
+				<Link href="/" className="flex items-center gap-4 text-white">
 					<img
 						src="/jobiq.svg"
 						alt="JobIQ"
@@ -36,7 +52,7 @@ function Header({ activePage = null, actions }: HeaderProps) {
 					<h2 className="text-white text-lg font-bold leading-tight tracking-wide drop-shadow-sm">
 						JobIQ
 					</h2>
-				</a>
+				</Link>
 				<label className="hidden lg:flex flex-col min-w-40 h-10! max-w-64">
 					<div className="flex w-full flex-1 items-stretch rounded-lg h-full ring-1 ring-white/10 bg-white/5 focus-within:ring-primary-dark/50 transition-all">
 						<div className="text-slate-400 flex border-none items-center justify-center pl-4 rounded-l-lg border-r-0">
@@ -52,7 +68,7 @@ function Header({ activePage = null, actions }: HeaderProps) {
 			<div className="flex flex-1 justify-end gap-8">
 				<div className="hidden md:flex items-center gap-9">
 					{navItems.map((item) => (
-						<a
+						<Link
 							key={item.page}
 							className={
 								activePage === item.page
@@ -62,13 +78,24 @@ function Header({ activePage = null, actions }: HeaderProps) {
 							href={item.href}
 						>
 							{item.label}
-						</a>
+						</Link>
 					))}
 				</div>
 				<div className="flex items-center gap-4">
 					{actions}
+					{user && (
+						<button
+							onClick={logout}
+							className="hidden sm:flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-slate-300 transition-all hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-300"
+						>
+							<span className="material-symbols-outlined text-[16px]">
+								logout
+							</span>
+							Sign out
+						</button>
+					)}
 					<div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-white/10 bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold">
-						AX
+						{initials}
 					</div>
 				</div>
 			</div>
