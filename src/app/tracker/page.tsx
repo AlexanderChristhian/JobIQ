@@ -171,7 +171,7 @@ export default function TrackerPage() {
 			)}
 
 			{wizardConnected && (
-				<div className="fixed top-2 right-4 z-[100] px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-medium flex items-center gap-1.5">
+				<div className="fixed top-20 right-4 z-[100] px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-medium flex items-center gap-1.5">
 					<span className="size-2 rounded-full bg-green-400 animate-pulse" />
 					Advisor online
 				</div>
